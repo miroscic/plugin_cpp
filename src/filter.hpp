@@ -12,6 +12,7 @@ Base class for pluguins
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 #ifdef _WIN32
 #define EXPORTIT __declspec(dllexport)
