@@ -12,12 +12,19 @@ struct TwiceParams {
   int times = 2;
 };
 
+using Vec = vector<double>;
+using Filter1 = Filter<double, double>;
+using FilterDriver1 = FilterDriver<double, double>;
+using Filter2 = Filter<Vec, Vec>;
+using FilterDriver2 = FilterDriver<Vec, Vec>;
+
 int main(int argc, char *argv[]) {
   pugg::Kernel kernel;
   // add a generic server to the kernel to initilize it
-  kernel.add_server(Filter<>::filter_name(),
-                    Filter<>::version);
-  
+  // kernel.add_server(Filter<>::filter_name(),
+  //                   Filter<>::version);
+  kernel.add_server<Filter<>>();
+
   // CLI needs unoe or two plugin paths
   // the first on must have doubles as input and output
   if (argc < 2) {
@@ -29,10 +36,9 @@ int main(int argc, char *argv[]) {
   // load the first plugin
   {
     kernel.load_plugin(argv[1]);
-    FilterDriver<double, double> *echo_driver =
-        kernel.get_driver<FilterDriver<double, double>>(
-            Filter<double, double>::filter_name(), "EchoDriver");
-    Filter<double, double> *echo = echo_driver->create();
+    FilterDriver1 *echo_driver =
+        kernel.get_driver<FilterDriver1>(Filter1::server_name(), "EchoDriver");
+    Filter1 *echo = echo_driver->create();
     // Now we can use the filter echo_driver as an instance of Filter class
     cout << "\nLoaded filter: " << echo->kind() << endl;
     double data = 3.14, out = 0;
@@ -46,14 +52,12 @@ int main(int argc, char *argv[]) {
   // Load the second plugin: it must have a double vector as input and output
   if (argc == 3) {
     kernel.load_plugin(argv[2]);
-    FilterDriver<vector<double>, vector<double>> *twice_driver =
-        kernel.get_driver<FilterDriver<vector<double>, vector<double>>>(
-            Filter<vector<double>, vector<double>>::filter_name(),
-            "TwiceDriver");
-    Filter<vector<double>, vector<double>> *twice = twice_driver->create();
+    FilterDriver2 *twice_driver =
+        kernel.get_driver<FilterDriver2>(Filter2::server_name(), "TwiceDriver");
+    Filter2 *twice = twice_driver->create();
     cout << "\nLoaded filter: " << twice->kind() << endl;
-    vector<double> data = {1, 2, 3, 4};
-    vector<double> result(data.size());
+    Vec data = {1, 2, 3, 4};
+    Vec result(data.size());
     TwiceParams params{3};
     twice->set_params(&params);
     twice->load_data(data);

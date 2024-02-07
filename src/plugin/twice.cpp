@@ -1,6 +1,7 @@
 #include "../filter.hpp"
 
 using namespace std;
+using Vec = std::vector<double>;
 
 struct TwiceParams {
   int times = 2;
@@ -12,11 +13,11 @@ struct TwiceParams {
 class Twice : public Filter<> {
 public:
   string kind() override { return "Twice"; }
-  bool load_data(vector<double> &d) override {
+  bool load_data(Vec &d) override {
     _data = d;
     return true;
   }
-  bool process(vector<double> *out) override {
+  bool process(Vec *out) override {
     if (out == nullptr) {
       return false;
     }
@@ -31,7 +32,7 @@ public:
   }
 
 private:
-  vector<double> _data;
+  Vec _data;
   TwiceParams _params;
 };
 

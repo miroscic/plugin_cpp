@@ -83,7 +83,7 @@ public:
   virtual void set_params(void *params){};
 
   static const int version = 1;
-  static const std::string filter_name() { return "FilterServer"; }
+  static const std::string server_name() { return "FilterServer"; }
 };
 
 #ifndef HAVE_MAIN
@@ -94,7 +94,7 @@ template <typename Tin = std::vector<double>,
 class FilterDriver : public pugg::Driver {
 public:
   FilterDriver(std::string name, int version)
-      : pugg::Driver(Filter<Tin, Tout>::filter_name(), name, version) {}
+      : pugg::Driver(Filter<Tin, Tout>::server_name(), name, version) {}
   virtual Filter<Tin, Tout> *create() = 0;
 };
 #endif

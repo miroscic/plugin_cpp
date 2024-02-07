@@ -12,7 +12,11 @@ message(STATUS "USR_DIR: ${USR_DIR}")
 message(STATUS "SRC_DIR: ${SRC_DIR}")
 
 include(FetchContent)
-FetchContent_Declare(pugg GIT_REPOSITORY https://github.com/tuncb/pugg.git)
+FetchContent_Declare(pugg 
+  GIT_REPOSITORY https://github.com/pbosetti/pugg.git
+  GIT_TAG        1.0.2
+  GIT_SHALLOW    TRUE
+)
 FetchContent_MakeAvailable(pugg)
 
 
