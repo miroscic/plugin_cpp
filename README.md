@@ -9,9 +9,18 @@ To build the project, you need to have CMake installed. Then, you can run the fo
 ```bash
 mkdir build
 ccmake -Bbuild -DCMAKE_BUILD_TYPE=Release
-cmake --build build
+cmake --build build -t install
 ```
 
 This creates two plugins (in the form of two shared libraries) and an executable that uses them. The plugins are named `echo` and `twice`. The first one simply echoes the scalar input, while the second one takes a `std::vector<double>` and twices each element.
 
 Plugins are named **Filters**, for they are expected to act as filters, taking an input and producing an output. The plugins must be implemented as derived classes of the templated class `Filter` (see `src/filter.hpp`).
+
+## Executing
+
+The install step creates and populates the `usr` directory in the build directory. You can run the executable with the following command:
+
+```bash
+cd usr
+bin/loader lib/echo.plugin lib/twice.plugin
+```
