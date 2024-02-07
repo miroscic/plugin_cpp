@@ -25,21 +25,24 @@ add_library(echo SHARED
   ${SRC_DIR}/plugin/echo.cpp
 )
 target_link_libraries(echo PRIVATE pugg)
+set_target_properties(echo PROPERTIES PREFIX "")
+set_target_properties(echo PROPERTIES SUFFIX ".plugin")
 list(APPEND TARGET_LIST echo)
 
 add_library(twice SHARED 
   ${SRC_DIR}/plugin/twice.cpp
 )
 target_link_libraries(twice PRIVATE pugg)
+set_target_properties(twice PROPERTIES PREFIX "")
+set_target_properties(twice PROPERTIES SUFFIX ".plugin")
 list(APPEND TARGET_LIST twice)
 
 add_executable(loader ${SRC_DIR}/main/loader.cpp)
-target_link_libraries(loader PRIVATE echo pugg)
+target_link_libraries(loader PRIVATE pugg)
 list(APPEND TARGET_LIST loader)
 
 add_executable(twice_test ${SRC_DIR}/plugin/twice.cpp)
 target_compile_definitions(twice_test PRIVATE HAVE_MAIN)
-target_link_libraries(twice_test PRIVATE pugg)
 list(APPEND TARGET_LIST twice_test)
 
 
