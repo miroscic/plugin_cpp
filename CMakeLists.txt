@@ -17,9 +17,14 @@ FetchContent_Declare(pugg
   GIT_TAG        1.0.2
   GIT_SHALLOW    TRUE
 )
-FetchContent_MakeAvailable(pugg)
+FetchContent_Declare(json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG        v3.11.3
+    GIT_SHALLOW    TRUE
+)
+FetchContent_MakeAvailable(pugg json)
 
-
+include_directories(${json_SOURCE_DIR}/include)
 
 add_library(echo SHARED 
   ${SRC_DIR}/plugin/echo.cpp
@@ -28,6 +33,14 @@ target_link_libraries(echo PRIVATE pugg)
 set_target_properties(echo PROPERTIES PREFIX "")
 set_target_properties(echo PROPERTIES SUFFIX ".plugin")
 list(APPEND TARGET_LIST echo)
+
+add_library(echoj SHARED 
+  ${SRC_DIR}/plugin/echoj.cpp
+)
+target_link_libraries(echoj PRIVATE pugg)
+set_target_properties(echoj PROPERTIES PREFIX "")
+set_target_properties(echoj PROPERTIES SUFFIX ".plugin")
+list(APPEND TARGET_LIST echoj)
 
 add_library(twice SHARED 
   ${SRC_DIR}/plugin/twice.cpp
@@ -41,9 +54,17 @@ add_executable(loader ${SRC_DIR}/main/loader.cpp)
 target_link_libraries(loader PRIVATE pugg)
 list(APPEND TARGET_LIST loader)
 
+add_executable(loaderj ${SRC_DIR}/main/loaderj.cpp)
+target_link_libraries(loaderj PRIVATE pugg)
+list(APPEND TARGET_LIST loaderj)
+
 add_executable(twice_test ${SRC_DIR}/plugin/twice.cpp)
 target_compile_definitions(twice_test PRIVATE HAVE_MAIN)
 list(APPEND TARGET_LIST twice_test)
+
+add_executable(echoj_test ${SRC_DIR}/plugin/echoj.cpp)
+target_compile_definitions(echoj_test PRIVATE HAVE_MAIN)
+list(APPEND TARGET_LIST echoj_test)
 
 
 
