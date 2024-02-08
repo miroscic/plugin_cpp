@@ -1,8 +1,12 @@
 #include "../filter.hpp"
 
+#ifndef PLUGIN_NAME
+#define PLUGIN_NAME "echo"
+#endif
+
 class Echo : public Filter<double, double> {
 public:
-  std::string kind() override { return "Echo"; }
+  std::string kind() override { return PLUGIN_NAME; }
   bool load_data(double &d) override { 
     _data = d;
     return true; 
@@ -20,7 +24,7 @@ private:
 #include <pugg/Kernel.h>
 class EchoDriver : public FilterDriver<double, double> {
 public:
-  EchoDriver() : FilterDriver("EchoDriver", Echo::version) {}
+  EchoDriver() : FilterDriver(PLUGIN_NAME, Echo::version) {}
   Filter<double, double> *create() { return new Echo(); }
 };
 

@@ -1,5 +1,9 @@
 #include "../filter.hpp"
 
+#ifndef PLUGIN_NAME
+#define PLUGIN_NAME "twice"
+#endif
+
 using namespace std;
 using Vec = std::vector<double>;
 
@@ -12,7 +16,7 @@ struct TwiceParams {
 // output data
 class Twice : public Filter<> {
 public:
-  string kind() override { return "Twice"; }
+  string kind() override { return PLUGIN_NAME; }
   bool load_data(Vec &d) override {
     _data = d;
     return true;
@@ -41,7 +45,7 @@ private:
 
 class TwiceDriver : public FilterDriver<> {
 public:
-  TwiceDriver() : FilterDriver("TwiceDriver", Twice::version) {}
+  TwiceDriver() : FilterDriver(PLUGIN_NAME, Twice::version) {}
   Filter<> *create() { return new Twice(); }
 };
 

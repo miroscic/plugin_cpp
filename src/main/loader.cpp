@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
   {
     kernel.load_plugin(argv[1]);
     FilterDriver1 *echo_driver =
-        kernel.get_driver<FilterDriver1>(Filter1::server_name(), "EchoDriver");
+        kernel.get_driver<FilterDriver1>(Filter1::server_name(), "echo");
     Filter1 *echo = echo_driver->create();
     // Now we can use the filter echo_driver as an instance of Filter class
     cout << "\nLoaded filter: " << echo->kind() << endl;
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
   if (argc == 3) {
     kernel.load_plugin(argv[2]);
     FilterDriver2 *twice_driver =
-        kernel.get_driver<FilterDriver2>(Filter2::server_name(), "TwiceDriver");
+        kernel.get_driver<FilterDriver2>(Filter2::server_name(), "twice");
     Filter2 *twice = twice_driver->create();
     cout << "\nLoaded filter: " << twice->kind() << endl;
     Vec data = {1, 2, 3, 4};
