@@ -1,6 +1,10 @@
 #include <nlohmann/json.hpp>
 #include "../filter.hpp"
 
+#ifndef PLUGIN_NAME
+#define PLUGIN_NAME "echoj"
+#endif
+
 using json = nlohmann::json;
 
 class Echo : public Filter<json, json> {
