@@ -36,7 +36,7 @@ template <typename Tin = std::vector<double>,
           typename Tout = std::vector<double>>
 class Filter {
 public:
-  Filter() {}
+  Filter() : _error("No error") {}
   virtual ~Filter() {}
 
   /*
@@ -82,8 +82,20 @@ public:
    */
   virtual void set_params(void *params){};
 
+  /*
+   * Returns the error message
+   *
+   * This method returns the error message.
+   *
+   * @return The error message
+   */
+  std::string error() { return _error; }
+
   static const int version = 1;
   static const std::string server_name() { return "FilterServer"; }
+
+private:
+  std::string _error;
 };
 
 #ifndef HAVE_MAIN

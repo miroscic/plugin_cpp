@@ -5,7 +5,7 @@ using json = nlohmann::json;
 
 class Echo : public Filter<json, json> {
 public:
-  std::string kind() override { return "EchoJ"; }
+  std::string kind() override { return PLUGIN_NAME; }
   bool load_data(json &d) override { 
     _data = d;
     return true; 
@@ -38,7 +38,7 @@ private:
 
 class EchoDriver : public FilterDriver<json, json> {
 public:
-  EchoDriver() : FilterDriver("EchoJDriver", Echo::version) {}
+  EchoDriver() : FilterDriver(PLUGIN_NAME, Echo::version) {}
   Filter<json, json> *create() { return new Echo(); }
 };
 

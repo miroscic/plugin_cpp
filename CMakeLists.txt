@@ -33,13 +33,17 @@ macro(add_plugin name)
   target_link_libraries(${name} PRIVATE pugg)
   set_target_properties(${name} PROPERTIES PREFIX "")
   set_target_properties(${name} PROPERTIES SUFFIX ".plugin")
+  target_compile_definitions(${name} PRIVATE PLUGIN_NAME="${name}")
   list(APPEND TARGET_LIST ${name})
 endmacro()
 
 macro (add_plugin_and_exe name)
   add_plugin(${name})
   add_executable(${name}_test ${SRC_DIR}/plugin/${name}.cpp)
-  target_compile_definitions(${name}_test PRIVATE HAVE_MAIN)
+  target_compile_definitions(${name}_test PRIVATE 
+    HAVE_MAIN
+    PLUGIN_NAME="${name}"
+  )
   list(APPEND TARGET_LIST ${name}_test)
 endmacro()
 

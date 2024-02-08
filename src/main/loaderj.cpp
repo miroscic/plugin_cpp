@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
   // load the first plugin
   kernel.load_plugin(argv[1]);
   FilterDriverJ *echo_driver =
-      kernel.get_driver<FilterDriverJ>(FilterJ::server_name(), "EchoJDriver");
+      kernel.get_driver<FilterDriverJ>(FilterJ::server_name(), "echoj");
   FilterJ *echo = echo_driver->create();
   // Now we can use the filter echo_driver as an instance of Filter class
   cout << "Loaded plugin: " << echo->kind() << endl;
