@@ -1,4 +1,13 @@
+/*
+  _____          _                  _             _       
+ |_   _|_      _(_) ___ ___   _ __ | |_   _  __ _(_)_ __  
+   | | \ \ /\ / / |/ __/ _ \ | '_ \| | | | |/ _` | | '_ \ 
+   | |  \ V  V /| | (_|  __/ | |_) | | |_| | (_| | | | | |
+   |_|   \_/\_/ |_|\___\___| | .__/|_|\__,_|\__, |_|_| |_|
+                             |_|            |___/         
+*/
 #include "../filter.hpp"
+#include <pugg/Kernel.h>
 
 #ifndef PLUGIN_NAME
 #define PLUGIN_NAME "twice"
@@ -40,21 +49,28 @@ private:
   TwiceParams _params;
 };
 
-#ifndef HAVE_MAIN
-#include <pugg/Kernel.h>
 
+// The driver class
 class TwiceDriver : public FilterDriver<> {
 public:
   TwiceDriver() : FilterDriver(PLUGIN_NAME, Twice::version) {}
   Filter<> *create() { return new Twice(); }
 };
 
+// The plugin registration function
 extern "C" EXPORTIT void register_pugg_plugin(pugg::Kernel *kernel) {
   kernel->add_driver(new TwiceDriver());
 }
 
 
-#else
+/*
+                  _       
+  _ __ ___   __ _(_)_ __  
+ | '_ ` _ \ / _` | | '_ \ 
+ | | | | | | (_| | | | | |
+ |_| |_| |_|\__,_|_|_| |_|
+                          
+*/
 
 int main(int argc, char const *argv[])
 {
@@ -79,4 +95,3 @@ int main(int argc, char const *argv[])
   return 0;
 }
 
-#endif

@@ -27,29 +27,20 @@ FetchContent_MakeAvailable(pugg json)
 include_directories(${json_SOURCE_DIR}/include)
 
 macro(add_plugin name)
-  add_library(${name} SHARED 
+  add_executable(${name} 
     ${SRC_DIR}/plugin/${name}.cpp
   )
   target_link_libraries(${name} PRIVATE pugg)
   set_target_properties(${name} PROPERTIES PREFIX "")
   set_target_properties(${name} PROPERTIES SUFFIX ".plugin")
+  set_target_properties(${name} PROPERTIES ENABLE_EXPORTS TRUE)
   target_compile_definitions(${name} PRIVATE PLUGIN_NAME="${name}")
   list(APPEND TARGET_LIST ${name})
 endmacro()
 
-macro (add_plugin_and_exe name)
-  add_plugin(${name})
-  add_executable(${name}_test ${SRC_DIR}/plugin/${name}.cpp)
-  target_compile_definitions(${name}_test PRIVATE 
-    HAVE_MAIN
-    PLUGIN_NAME="${name}"
-  )
-  list(APPEND TARGET_LIST ${name}_test)
-endmacro()
-
 add_plugin(echo)
-add_plugin_and_exe(echoj)
-add_plugin_and_exe(twice)
+add_plugin(echoj)
+add_plugin(twice)
 
 add_executable(loader ${SRC_DIR}/main/loader.cpp)
 target_link_libraries(loader PRIVATE pugg)
