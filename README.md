@@ -12,15 +12,31 @@ ccmake -Bbuild -DCMAKE_BUILD_TYPE=Release
 cmake --build build -t install
 ```
 
-This creates two plugins (in the form of two shared libraries) and an executable that uses them. The plugins are named `echo` and `twice`. The first one simply echoes the scalar input, while the second one takes a `std::vector<double>` and twices each element.
+This creates three plugins in the form of executable files **that also export symbols**, so that they can be externally loaded by the main application. The plugins are named `echo.plugin`, `twice.plugin`, and `echoj.plugin`.
+
+The latter plugin is a template for complete plugins, and it is pretty extensible. Indeed, it accepts a JSON object as settings, a JSON object as input, and produces a JSON object as output. The other two plugins are simple examples of how to implement a plugin.
 
 Plugins are named **Filters**, for they are expected to act as filters, taking an input and producing an output. The plugins must be implemented as derived classes of the templated class `Filter` (see `src/filter.hpp`).
 
+If needed, this project will be extended by adding base classes for other types of plugins, such as **Sources** (output only) and **Sinks** (input only).
+
 ## Executing
 
-The install step creates and populates the `usr` directory in the build directory. You can run the executable with the following command:
+The install step creates and populates the `usr` directory in the project root folder. You can run the executable that loads the plugin with the following command:
 
 ```bash
 cd usr
-bin/loader lib/echo.plugin lib/twice.plugin
+bin/loaderj bin/echoj.plugin
 ```
+
+Note that the `echoj.plugin` file is actually an executable file that exports symbols. It is not a shared library, but it is a plugin that can also be directly executed (using its internal `main()`) as:
+
+```bash
+bin/echoj.plugin
+```
+
+This is a very flexible way for implementing standalone apps that can also be used as plugins within the Miroscic framework of distributed agents.
+
+## Plugin Versioning
+
+The plugin system uses an internal version number `Filter::version` to check compatibility between the main application and the plugins. To invalidate a previously released plugin, simply imcrease the version number in the base class.
