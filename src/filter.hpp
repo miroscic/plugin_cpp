@@ -5,7 +5,7 @@
  |  _| | | | ||  __/ |
  |_|   |_|_|\__\___|_|
 
-Base class for pluguins
+Base class for filter plugins
 */
 #ifndef FILTER_HPP
 #define FILTER_HPP

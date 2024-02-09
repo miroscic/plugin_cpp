@@ -7,19 +7,9 @@
 
 using namespace std;
 
-// Parameters for twice plugin
-struct TwiceParams {
-  int times = 2;
-};
-
 using json = nlohmann::json;
 using FilterJ = Filter<json, json>;
 using FilterDriverJ = FilterDriver<json, json>;
-using Vec = vector<double>;
-using Filter1 = Filter<double, double>;
-using FilterDriver1 = FilterDriver<double, double>;
-using Filter2 = Filter<Vec, Vec>;
-using FilterDriver2 = FilterDriver<Vec, Vec>;
 
 int main(int argc, char *argv[]) {
   pugg::Kernel kernel;
