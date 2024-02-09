@@ -27,15 +27,23 @@ FetchContent_MakeAvailable(pugg json)
 include_directories(${json_SOURCE_DIR}/include)
 
 macro(add_plugin name)
-  add_executable(${name} 
-    ${SRC_DIR}/plugin/${name}.cpp
-  )
+  # on MacOS only, plugins can be compiled as executables
+  if (APPLE)
+    add_executable(${name} ${SRC_DIR}/plugin/${name}.cpp)
+    set_target_properties(${name} PROPERTIES ENABLE_EXPORTS TRUE)
+    set(${name}_EXEC ${name}.plugin)
+  else()
+    add_library(${name} SHARED ${SRC_DIR}/plugin/${name}.cpp)
+    add_executable(${name}_main ${SRC_DIR}/plugin/${name}.cpp)
+    target_link_libraries(${name}_main PRIVATE pugg)
+    set(${name}_EXEC ${name})
+    set_target_properties(${name}_main PROPERTIES OUTPUT_NAME ${name})
+  endif()
   target_link_libraries(${name} PRIVATE pugg)
   set_target_properties(${name} PROPERTIES PREFIX "")
   set_target_properties(${name} PROPERTIES SUFFIX ".plugin")
-  set_target_properties(${name} PROPERTIES ENABLE_EXPORTS TRUE)
   target_compile_definitions(${name} PRIVATE PLUGIN_NAME="${name}")
-  list(APPEND TARGET_LIST ${name})
+  list(APPEND TARGET_LIST ${name} ${name}_main)
 endmacro()
 
 add_plugin(echo)
@@ -51,7 +59,6 @@ target_link_libraries(loaderj PRIVATE pugg)
 list(APPEND TARGET_LIST loaderj)
 
 
-
 set(CMAKE_INSTALL_PREFIX ${USR_DIR})
 install(TARGETS ${TARGET_LIST}
   BUNDLE DESTINATION bin
@@ -61,5 +68,5 @@ install(TARGETS ${TARGET_LIST}
 )
 
 include(CTest)
-add_test(NAME plugin COMMAND echoj.plugin)
-add_test(NAME loader COMMAND loaderj echoj.plugin)
+add_test(NAME plugin COMMAND ${echoj_EXEC} )
+add_test(NAME loader COMMAND build/loaderj build/echoj.plugin WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
