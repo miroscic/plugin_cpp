@@ -30,8 +30,7 @@ public:
 
   static string get_ISO8601(const system_clock::time_point &time) {
     time_t tt = system_clock::to_time_t(time);
-    tm tt2;
-    localtime_r(&tt, &tt2);
+    tm *tt2 = localtime(&tt);
 
     // Get milliseconds hack
     auto timeTruncated = system_clock::from_time_t(tt);
@@ -40,9 +39,9 @@ public:
 
     return (
                stringstream()
-               << put_time(&tt2, "%FT%T")              // "2023-03-30T19:49:53"
+               << put_time(tt2, "%FT%T")              // "2023-03-30T19:49:53"
                << "." << setw(3) << setfill('0') << ms // ".005"
-               << put_time(&tt2, "%z") // "+0200" (time zone offset, optional)
+               << put_time(tt2, "%z") // "+0200" (time zone offset, optional)
                )
         .str();
   }
