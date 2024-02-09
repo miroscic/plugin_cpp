@@ -78,6 +78,11 @@ public:
    */
   std::string error() { return _error; }
 
+  /*
+   * Set it to true to enable dummy mode
+  */
+  bool dummy;
+
   static const int version = 1;
   static const std::string server_name() { return "SourceServer"; }
 

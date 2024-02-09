@@ -36,7 +36,7 @@ template <typename Tin = std::vector<double>,
           typename Tout = std::vector<double>>
 class Filter {
 public:
-  Filter() : _error("No error") {}
+  Filter() : _error("No error"), dummy(false) {}
   virtual ~Filter() {}
 
   /*
@@ -90,6 +90,11 @@ public:
    * @return The error message
    */
   std::string error() { return _error; }
+
+  /*
+   * Set it to true to enable dummy mode
+  */
+  bool dummy;
 
   static const int version = 1;
   static const std::string server_name() { return "FilterServer"; }

@@ -1,22 +1,29 @@
+#   ____  _             _       
+#  |  _ \| |_   _  __ _(_)_ __  
+#  | |_) | | | | |/ _` | | '_ \ 
+#  |  __/| | |_| | (_| | | | | |
+#  |_|   |_|\__,_|\__, |_|_| |_|
+#                 |___/         
 cmake_minimum_required(VERSION 3.20)
 project(plugin VERSION 0.1.0 LANGUAGES CXX)
 
+
+# PROJECT SETTINGS #############################################################
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(USR_DIR ${CMAKE_CURRENT_LIST_DIR}/usr)
 set(SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
 
-message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
-message(STATUS "CMAKE_LIST_DIR: ${CMAKE_LIST_DIR}")
-message(STATUS "USR_DIR: ${USR_DIR}")
-message(STATUS "SRC_DIR: ${SRC_DIR}")
 
+# DEPENDENCIES #################################################################
 include(FetchContent)
+# pugg is for the plugin system
 FetchContent_Declare(pugg 
   GIT_REPOSITORY https://github.com/pbosetti/pugg.git
   GIT_TAG        1.0.2
   GIT_SHALLOW    TRUE
 )
+# plugins deal with I/O as JSON objects
 FetchContent_Declare(json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
     GIT_TAG        v3.11.3
@@ -24,8 +31,8 @@ FetchContent_Declare(json
 )
 FetchContent_MakeAvailable(pugg json)
 
-include_directories(${json_SOURCE_DIR}/include)
 
+# MACROS #######################################################################
 macro(add_plugin name)
   # on MacOS only, plugins can be compiled as executables
   if (APPLE)
@@ -53,6 +60,10 @@ macro(add_loader name)
   list(APPEND TARGET_LIST ${name})
 endmacro()
 
+
+# BUILD SETTINGS ###############################################################
+include_directories(${json_SOURCE_DIR}/include)
+
 add_plugin(echo)
 add_plugin(echoj)
 add_plugin(twice)
@@ -63,6 +74,7 @@ add_loader(load_filter)
 add_loader(load_source)
 
 
+# INSTALL ######################################################################
 set(CMAKE_INSTALL_PREFIX ${USR_DIR})
 install(TARGETS ${TARGET_LIST}
   BUNDLE DESTINATION bin
@@ -71,6 +83,8 @@ install(TARGETS ${TARGET_LIST}
   ARCHIVE DESTINATION lib
 )
 
+
+# TESTING ######################################################################
 include(CTest)
 add_test(NAME "echoj plugin exec" COMMAND ${echoj_EXEC})
 add_test(NAME "clock plugin exec" COMMAND ${clock_EXEC})
