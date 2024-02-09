@@ -59,3 +59,7 @@ install(TARGETS ${TARGET_LIST}
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
 )
+
+include(CTest)
+add_test(NAME plugin COMMAND echoj.plugin)
+add_test(NAME loader COMMAND loaderj echoj.plugin)
