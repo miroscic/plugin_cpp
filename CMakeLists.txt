@@ -69,5 +69,11 @@ install(TARGETS ${TARGET_LIST}
 )
 
 include(CTest)
-add_test(NAME plugin COMMAND ${echoj_EXEC} )
-add_test(NAME loader COMMAND build/loaderj build/echoj.plugin WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+add_test(NAME "echoj plugin exec" COMMAND ${echoj_EXEC} )
+if (APPLE)
+  add_test(NAME "loaderj echoj.plugin" COMMAND loaderj echoj.plugin)
+elseif(WIN32)
+  add_test(NAME "loaderj echoj.plugin" COMMAND loaderj.exe echoj.plugin)
+else()
+  add_test(NAME "loaderj echoj.plugin" COMMAND build/loaderj build/echoj.plugin WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+endif()
