@@ -1,4 +1,5 @@
 # Plugins!
+![Build status](https://github.com/miroscic/plugin_cpp/actions/workflows/cmake-multi-platform.yml/badge.svg)
 
 This example project explores how to develop a plugin system for a C++ application. It is based on the [pugg plugin system]().
 
@@ -29,13 +30,16 @@ cd usr
 bin/loaderj bin/echoj.plugin
 ```
 
-Note that the `echoj.plugin` file is actually an executable file that exports symbols. It is not a shared library, but it is a plugin that can also be directly executed (using its internal `main()`) as:
+Note that **on MacOS only** the `echoj.plugin` file is actually an executable file that exports symbols. It is not a shared library, but it is a plugin that can also be directly executed (using its internal `main()`) as:
 
 ```bash
 bin/echoj.plugin
 ```
 
 This is a very flexible way for implementing standalone apps that can also be used as plugins within the Miroscic framework of distributed agents.
+
+On Windows and Linux, the plugin is a shared library that can only be loaded by the `loader` executable. Beside the plugin, an equivalent executable is also generated.
+
 
 ## Plugin Versioning
 
