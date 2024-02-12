@@ -16,13 +16,13 @@
 class Echo : public Filter<double, double> {
 public:
   std::string kind() override { return PLUGIN_NAME; }
-  bool load_data(double &d) override {
+  return_type load_data(double &d) override {
     _data = d;
-    return true;
+    return return_type::success;
   }
-  bool process(double *out) override {
+  return_type process(double *out) override {
     *out = _data;
-    return true;
+    return return_type::success;
   }
 
 private:

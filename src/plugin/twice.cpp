@@ -26,19 +26,19 @@ struct TwiceParams {
 class Twice : public Filter<> {
 public:
   string kind() override { return PLUGIN_NAME; }
-  bool load_data(Vec &d) override {
+  return_type load_data(Vec &d) override {
     _data = d;
-    return true;
+    return return_type::success;
   }
-  bool process(Vec *out) override {
+  return_type process(Vec *out) override {
     if (out == nullptr) {
-      return false;
+      return return_type::critical;
     }
     out->clear();
     for (auto &d : _data) {
       out->push_back(d * _params.times);
     }
-    return true;
+    return return_type::success;
   }
   void set_params(void *params) override {
     _params = *(TwiceParams *)params;

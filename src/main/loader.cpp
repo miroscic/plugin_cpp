@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
     TwiceParams params{3};
     twice->set_params(&params);
     twice->load_data(data);
-    if (twice->process(&result)) {
+    if (twice->process(&result) == return_type::success) {
       cout << "Input: " << endl << "{ ";
       for (auto &d : data) {
         cout << d << " ";

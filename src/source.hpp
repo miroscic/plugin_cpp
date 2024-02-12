@@ -13,6 +13,7 @@ Base class for source plugins
 #include <iostream>
 #include <string>
 #include <vector>
+#include "common.hpp"
 
 #ifdef _WIN32
 #define EXPORTIT __declspec(dllexport)
@@ -56,7 +57,7 @@ public:
    * @param out The output data
    * @return True if the data was processed successfully, and false otherwise
    */
-  virtual bool get_output(Tout *out) = 0;
+  virtual return_type get_output(Tout *out) = 0;
 
   /*
    * Sets the parameters

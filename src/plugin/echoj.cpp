@@ -25,14 +25,14 @@ using json = nlohmann::json;
 class Echo : public Filter<json, json> {
 public:
   string kind() override { return PLUGIN_NAME; }
-  bool load_data(json &d) override {
+  return_type load_data(json &d) override {
     _data = d;
-    return true;
+    return return_type::success;
   }
-  bool process(json *out) override {
+  return_type process(json *out) override {
     (*out)["data"] = _data;
     (*out)["params"] = _params;
-    return true;
+    return return_type::success;
   }
 
   void set_params(void *params) override { _params = *(json *)params; }
@@ -98,7 +98,7 @@ int main(int argc, char const *argv[]) {
   echo.set_params(&params);
   echo.load_data(data);
   json result;
-  if (!echo.process(&result)) {
+  if (echo.process(&result) != return_type::success) {
     cerr << "Error processing data" << endl;
     return 1;
   }

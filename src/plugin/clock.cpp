@@ -46,12 +46,12 @@ public:
         .str();
   }
 
-  bool get_output(json *out) override {
+  return_type get_output(json *out) override {
     auto now = chrono::system_clock::now();
     (*out)["time_raw"] = now.time_since_epoch().count();
     (*out)["time"] = get_ISO8601(now);
     (*out)["params"] = _params;
-    return true;
+    return return_type::success;
   }
 
   void set_params(void *params) override { _params = *(json *)params; }
