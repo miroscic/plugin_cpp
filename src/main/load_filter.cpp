@@ -1,7 +1,7 @@
 #include "../filter.hpp"
-#include <pugg/Kernel.h>
-#include <nlohmann/json.hpp>
 #include <iostream>
+#include <nlohmann/json.hpp>
+#include <pugg/Kernel.h>
 #include <thread>
 #include <vector>
 
@@ -27,23 +27,49 @@ int main(int argc, char *argv[]) {
 
   cout << "Loading plugin... ";
   cout.flush();
-  // load the first plugin
+  // load the plugin
   kernel.load_plugin(argv[1]);
-  FilterDriverJ *echo_driver =
-      kernel.get_driver<FilterDriverJ>(FilterJ::server_name(), "echoj");
-  FilterJ *echo = echo_driver->create();
-  // Now we can use the filter echo_driver as an instance of Filter class
-  cout << "Loaded plugin: " << echo->kind() << endl;
+
+  // find the proper driver in the plugin
+  // - if there's only one, load it
+  // - if there are more, list them and select the one passed on the CLI
+  auto drivers = kernel.get_all_drivers<FilterDriverJ>(FilterJ::server_name());
+  FilterDriverJ *driver = nullptr;
+  if (drivers.size() == 1 && argc == 2) {
+    driver = drivers[0];
+    cout << "loaded default driver " << driver->name();
+  } else if (drivers.size() > 1) {
+    cout << "found multiple drivers:" << endl;
+    for (auto &d : drivers) {
+      cout << " - " << d->name();
+      if (argc >= 3 && d->name() == argv[2]) {
+        driver = d;
+        cout << " -> selected" << endl;
+      } else {
+        cout << endl;
+      }
+    }
+  }
+
+  // No driver can be loaded
+  if (!driver) {
+    cout << "No driver to load, exiting" << endl;
+    exit(1);
+  }
+
+  FilterJ *filter = driver->create();
+  // Now we can create an instance of class FilterJ from the driver
+  cout << "Loaded plugin: " << filter->kind() << endl;
 
   json in = {{"array", {1, 2, 3, 4}}};
   json params = {{"name", "echo test"}};
   json out;
-  echo->set_params(&params);
-  echo->load_data(in);
-  echo->process(&out);
+  filter->set_params(&params);
+  filter->load_data(in);
+  filter->process(&out);
   cout << "Input: " << in << endl;
   cout << "Output: " << out << endl;
-  delete echo;
+  delete filter;
 
   kernel.clear_drivers();
 }
