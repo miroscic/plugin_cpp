@@ -46,7 +46,7 @@ public:
         .str();
   }
 
-  return_type get_output(json *out) override {
+  return_type get_output(json *out, std::vector<unsigned char> *blob = nullptr) override {
     auto now = chrono::system_clock::now();
     (*out)["time_raw"] = now.time_since_epoch().count();
     (*out)["time"] = get_ISO8601(now);

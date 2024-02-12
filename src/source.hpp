@@ -57,7 +57,7 @@ public:
    * @param out The output data
    * @return True if the data was processed successfully, and false otherwise
    */
-  virtual return_type get_output(Tout *out) = 0;
+  virtual return_type get_output(Tout *out, std::vector<unsigned char> *blob = nullptr) = 0;
 
   /*
    * Sets the parameters
