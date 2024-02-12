@@ -35,7 +35,7 @@ Base class for source plugins
 template <typename Tout = std::vector<double>>
 class Source {
 public:
-  Source() : _error("No error") {}
+  Source() : _error("No error") , _blob_format("none") {}
   virtual ~Source() {}
 
   /*
@@ -59,6 +59,7 @@ public:
    */
   virtual return_type get_output(Tout *out, std::vector<unsigned char> *blob = nullptr) = 0;
 
+
   /*
    * Sets the parameters
    *
@@ -80,14 +81,21 @@ public:
   std::string error() { return _error; }
 
   /*
+   * Returns the format of the blob data provided by get_output().
+   */
+  std::string blob_format() { return _blob_format; }
+
+  /*
    * Set it to true to enable dummy mode
-  */
+   */
   bool dummy;
+
 
   static const int version = 1;
   static const std::string server_name() { return "SourceServer"; }
 
-private:
+protected:
+  std::string _blob_format;
   std::string _error;
 };
 
