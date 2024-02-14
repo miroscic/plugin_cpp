@@ -9,7 +9,7 @@ project(plugin VERSION 0.1.0 LANGUAGES CXX)
 
 
 # PROJECT SETTINGS #############################################################
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(USR_DIR ${CMAKE_CURRENT_LIST_DIR}/usr)
 set(SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
@@ -35,6 +35,8 @@ FetchContent_MakeAvailable(pugg json)
 # MACROS #######################################################################
 macro(add_plugin name)
   # on MacOS only, plugins can be compiled as executables
+  set(libs ${ARGV})
+  list(REMOVE_ITEM libs ${name})
   if (APPLE)
     add_executable(${name} ${SRC_DIR}/plugin/${name}.cpp)
     set_target_properties(${name} PROPERTIES ENABLE_EXPORTS TRUE)
@@ -42,12 +44,12 @@ macro(add_plugin name)
   else()
     add_library(${name} SHARED ${SRC_DIR}/plugin/${name}.cpp)
     add_executable(${name}_main ${SRC_DIR}/plugin/${name}.cpp)
-    target_link_libraries(${name}_main PRIVATE pugg)
+    target_link_libraries(${name}_main PRIVATE pugg ${libs})
     set(${name}_EXEC ${name})
     set_target_properties(${name}_main PROPERTIES OUTPUT_NAME ${name})
     list(APPEND TARGET_LIST ${name}_main)
   endif()
-  target_link_libraries(${name} PRIVATE pugg)
+  target_link_libraries(${name} PRIVATE pugg ${libs})
   set_target_properties(${name} PROPERTIES PREFIX "")
   set_target_properties(${name} PROPERTIES SUFFIX ".plugin")
   target_compile_definitions(${name} PRIVATE PLUGIN_NAME="${name}")
@@ -72,6 +74,12 @@ add_plugin(clock)
 add_loader(loader)
 add_loader(load_filter)
 add_loader(load_source)
+
+find_package(OpenCV)
+if(OpenCV_FOUND)
+  message(STATUS "OpenCV found, webcam.plugin will be built")
+  add_plugin(webcam ${OpenCV_LIBS})
+endif()
 
 
 # INSTALL ######################################################################
