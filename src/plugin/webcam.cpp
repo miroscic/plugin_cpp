@@ -66,6 +66,7 @@ public:
     return_type result = return_type::success;
     Mat hist;
     int hist_size = 20;
+    int channels[] = {0};
     if (_params.contains("hist_size")) {
       hist_size = _params["hist_size"];
     }
@@ -77,19 +78,45 @@ public:
       resize(_frame, _frame, Size(), 0.3, 0.3);
       cvtColor(_frame, _gray, COLOR_BGR2GRAY);
       calcHist(&_gray,
-               1,         // number of images
-               0,         // channels
-               Mat(),     // mask
-               hist,      // histogram
-               1,         // dimensionality
+               1,          // number of images
+               channels,   // channels
+               Mat(),      // mask
+               hist,       // histogram
+               1,          // dimensionality
                &hist_size, // number of bins
                0);
       normalize(hist, hist, 0, 255, NORM_MINMAX, CV_32F);
 
       putText(_frame, get_ISO8601(), Point{5, _frame.rows - 5}, 0, 0.5, 1, 1, 8,
               false);
+
+      double ratio = 5.0;
+      int inset = 5;
+      int hist_w = _frame.cols / ratio, hist_h = _frame.rows / ratio;
+      double bin_w = (double)hist_w / hist_size;
+      int off_x = _frame.cols - hist_w - inset;
+      int off_y = -inset;
+      // draw histogram
+      for (int i = 1; i < hist_size; i++) {
+        line(_frame,
+             Point(bin_w * (i - 1) + off_x,
+                   _frame.rows - cvRound(hist.at<float>(i - 1) / 255 * hist_h) +
+                       off_y),
+             Point(bin_w * i + off_x,
+                   _frame.rows - cvRound(hist.at<float>(i) / 255 * hist_h) +
+                       off_y),
+             Scalar(200, 200, 200), 1, LINE_AA, 0);
+      }
+      // axes
+      line(_frame, Point(off_x, _frame.rows - inset),
+           Point(off_x, _frame.rows - inset - hist_h), Scalar(180, 180, 180), 1,
+           LINE_AA, 0);
+      line(_frame, Point(off_x, _frame.rows - inset),
+           Point(off_x + hist_w, _frame.rows - inset), Scalar(180, 180, 180), 1,
+           LINE_AA, 0);
+
       imshow("frame", _frame);
-      // imshow("Histogram", hist_image);
+
       char k = waitKey(1000.0 / 25);
       if (' ' == k) {
         imwrite(_params["image_name"], _frame);
@@ -104,12 +131,18 @@ public:
       }
     }
     if (return_type::success == result) {
-      (*out)["frame_size"] = {{cvRound(_cap.get(CAP_PROP_FRAME_WIDTH)),
-                               cvRound(_cap.get(CAP_PROP_FRAME_HEIGHT))}};
-      (*out)["image_size"] = {{_frame.cols, _frame.rows}};
+      (*out)["frame_size"] = {cvRound(_cap.get(CAP_PROP_FRAME_WIDTH)),
+                               cvRound(_cap.get(CAP_PROP_FRAME_HEIGHT))};
+      (*out)["image_size"] = {_frame.cols, _frame.rows};
       (*out)["histogram"] = json::array();
-      for (int i = 0; i < hist_size; i++) {
-        (*out)["histogram"].push_back(cvRound(hist.at<float>(i)));
+      vector<uint16_t> hist_data;
+      if (hist.isContinuous()) {
+        hist_data.assign((float *)hist.datastart, (float *)hist.dataend);
+        (*out)["histogram"] = hist_data;
+      } else {
+        for (int i = 0; i < hist_size; i++) {
+          (*out)["histogram"].push_back(cvRound(hist.at<float>(i)));
+        }
       }
     }
     return result;
@@ -163,17 +196,13 @@ int main(int argc, char const *argv[]) {
   Webcam wc;
   json output;
   vector<unsigned char> blob;
-  wc.set_params(new json({
-    {"device", 0}, 
-    {"image_name", "image.jpg"}}));
+  wc.set_params(new json(
+      {{"device", 0}, {"image_name", "image.jpg"}, {"hist_size", 50}}));
 
-  auto now = system_clock::now();
-  auto today = floor<days>(now);
-  auto tod = duration_cast<seconds>(now - today);
-  cout << "Local time: " << tod.count() << endl;
+  cout << "Press space to capture image, q to quit" << endl;
 
   while (wc.get_output(&output, &blob) == return_type::success) {
-    cout << "Webcam: " << output.dump() << endl;
+    cout << "Webcam plugin output: " << output.dump() << endl;
     cout << "Image size: " << blob.size() << " bytes" << endl;
   }
 
