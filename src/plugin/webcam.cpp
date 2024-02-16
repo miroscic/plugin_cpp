@@ -64,31 +64,34 @@ public:
   return_type get_output(json *out,
                          std::vector<unsigned char> *blob = nullptr) override {
     return_type result = return_type::success;
-    Mat hist;
+    Mat hist, overlay, flipped;
     int hist_size = 20;
-    int channels[] = {0};
+    string filename = "image.jpg";
     if (_params.contains("hist_size")) {
       hist_size = _params["hist_size"];
     }
+    if (_params.contains("image_name")) {
+      filename = _params["image_name"];
+    }
     while (true) {
       _cap >> _frame;
-      hist.release();
-      if (_frame.empty())
+      if (_frame.empty()) {
+        _error = "Error: Unable to capture frame";
         return return_type::error;
+      }
       resize(_frame, _frame, Size(), 0.3, 0.3);
+      hist.release();
+      overlay = Mat::zeros(_frame.size(), _frame.type());
       cvtColor(_frame, _gray, COLOR_BGR2GRAY);
       calcHist(&_gray,
                1,          // number of images
-               channels,   // channels
+               0,   // channels
                Mat(),      // mask
                hist,       // histogram
                1,          // dimensionality
                &hist_size, // number of bins
                0);
       normalize(hist, hist, 0, 255, NORM_MINMAX, CV_32F);
-
-      putText(_frame, get_ISO8601(), Point{5, _frame.rows - 5}, 0, 0.5, 1, 1, 8,
-              false);
 
       double ratio = 5.0;
       int inset = 5;
@@ -98,7 +101,7 @@ public:
       int off_y = -inset;
       // draw histogram
       for (int i = 1; i < hist_size; i++) {
-        line(_frame,
+        line(overlay,
              Point(bin_w * (i - 1) + off_x,
                    _frame.rows - cvRound(hist.at<float>(i - 1) / 255 * hist_h) +
                        off_y),
@@ -108,20 +111,29 @@ public:
              Scalar(200, 200, 200), 1, LINE_AA, 0);
       }
       // axes
-      line(_frame, Point(off_x, _frame.rows - inset),
+      line(overlay, Point(off_x, _frame.rows - inset),
            Point(off_x, _frame.rows - inset - hist_h), Scalar(180, 180, 180), 1,
            LINE_AA, 0);
-      line(_frame, Point(off_x, _frame.rows - inset),
+      line(overlay, Point(off_x, _frame.rows - inset),
            Point(off_x + hist_w, _frame.rows - inset), Scalar(180, 180, 180), 1,
            LINE_AA, 0);
 
-      imshow("frame", _frame);
+      putText(overlay, get_ISO8601(), Point{5, _frame.rows - 5}, 0, 0.5, 
+        Scalar(200, 200, 200), 1, 8, false);
+
+      if (_params.contains("flip") && _params["flip"].get<bool>()) {
+        flip(_frame, flipped, 1);
+        imshow("frame", flipped + overlay);
+      } else {
+        imshow("frame", _frame + overlay);
+      }
 
       char k = waitKey(1000.0 / 25);
       if (' ' == k) {
-        imwrite(_params["image_name"], _frame);
+        Mat out_image = _frame + overlay;
+        imwrite(_params["image_name"], out_image);
         if (blob) {
-          imencode("." + _blob_format, _frame, *blob);
+          imencode("." + _blob_format, out_image, *blob);
         }
         break;
       } else if ('q' == k) {
@@ -150,8 +162,11 @@ public:
 
   void set_params(void *params) override {
     _params = *(json *)params;
-    int device = _params["device"];
-    _cap.open(device, CAP_AVFOUNDATION);
+    int device = 0;
+    if (_params.contains("device")) {
+      device = _params["device"].template get<int>();
+    }
+    _cap.open(device);
     if (!_cap.isOpened()) {
       throw runtime_error("Error: Unable to open webcam");
     }
@@ -196,8 +211,13 @@ int main(int argc, char const *argv[]) {
   Webcam wc;
   json output;
   vector<unsigned char> blob;
-  wc.set_params(new json(
-      {{"device", 0}, {"image_name", "image.jpg"}, {"hist_size", 50}}));
+  wc.set_params(new json({
+    {"device", 0}, 
+    {"image_name", "image.jpg"}, 
+    {"hist_size", 50},
+    {"scale", 1/3.0},
+    {"flip", true}
+  }));
 
   cout << "Press space to capture image, q to quit" << endl;
 

@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
   cout << "Loaded plugin: " << source->kind() << endl;
 
   json params = {
-      {"name", "clock test"}, {"device", 0}, {"image_name", "image.jpg"}};
+      {"name", "clock test"}};
   json out;
   source->set_params(&params);
   source->get_output(&out);
