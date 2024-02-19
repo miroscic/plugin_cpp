@@ -13,7 +13,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(USR_DIR ${CMAKE_CURRENT_LIST_DIR}/usr)
 set(SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
-
+set(CMAKE_INSTALL_PREFIX ${USR_DIR})
+set(FETCHCONTENT_QUIET OFF)
 
 # DEPENDENCIES #################################################################
 include(FetchContent)
@@ -24,10 +25,12 @@ FetchContent_Declare(pugg
   GIT_SHALLOW    TRUE
 )
 # plugins deal with I/O as JSON objects
+set(BUILD_TESTING OFF CACHE INTERNAL "")
+set(JSON_BuildTests OFF CACHE INTERNAL "")
 FetchContent_Declare(json
-    GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG        v3.11.3
-    GIT_SHALLOW    TRUE
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG        v3.11.3
+  GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(pugg json)
 
@@ -67,6 +70,11 @@ endmacro()
 
 
 # BUILD SETTINGS ###############################################################
+if (APPLE)
+  set(CMAKE_INSTALL_RPATH "@executable_path/../lib")
+else()
+  set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib;/usr/local/lib")
+endif()
 include_directories(${json_SOURCE_DIR}/include)
 
 add_plugin(echo)
