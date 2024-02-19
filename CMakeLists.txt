@@ -9,7 +9,7 @@ project(plugin VERSION 0.1.0 LANGUAGES CXX)
 
 
 # PROJECT SETTINGS #############################################################
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(USR_DIR ${CMAKE_CURRENT_LIST_DIR}/usr)
 set(SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
