@@ -178,7 +178,7 @@ public:
   map<string, string> info() override {
     map<string, string> m{};
     m["device"] = to_string(_device);
-    m["image_name"] = _params["image_name"];
+    m["image_name"] = _image_name;
     m["hist_size"] = to_string(_hist_size);
     m["image_name"] = _image_name;
     m["scale"] = to_string(_scale);

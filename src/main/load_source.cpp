@@ -4,6 +4,7 @@
 #include <pugg/Kernel.h>
 #include <thread>
 #include <vector>
+#include <fstream>
 
 using namespace std;
 
@@ -13,15 +14,16 @@ using SourceDriverJ = SourceDriver<json>;
 
 int main(int argc, char *argv[]) {
   pugg::Kernel kernel;
+  string json_file = "";
   // add a generic server to the kernel to initilize it
   // kernel.add_server(Filter<>::filter_name(),
   //                   Filter<>::version);
   kernel.add_server<Source<>>();
 
-  // CLI needs unoe or two plugin paths
+  // CLI needs une or two plugin paths
   // the first on must have doubles as input and output
   if (argc < 2) {
-    cout << "Usage: " << argv[0] << " <plugin> [name]" << endl;
+    cout << "Usage: " << argv[0] << " <plugin> [name] [json]" << endl;
     return 1;
   }
 
@@ -35,9 +37,10 @@ int main(int argc, char *argv[]) {
   // - if there are more, list them and select the one passed on the CLI
   auto drivers = kernel.get_all_drivers<SourceDriverJ>(SourceJ::server_name());
   SourceDriverJ *driver = nullptr;
-  if (drivers.size() == 1 && argc == 2) {
+  if (drivers.size() == 1) {
     driver = drivers[0];
     cout << "loaded default driver " << driver->name();
+    if (argc >= 3) json_file = argv[2]; 
   } else if (drivers.size() > 1) {
     cout << "found multiple drivers:" << endl;
     for (auto &d : drivers) {
@@ -45,6 +48,7 @@ int main(int argc, char *argv[]) {
       if (argc >= 3 && d->name() == argv[2]) {
         driver = d;
         cout << " -> selected" << endl;
+        if (argc >= 4) json_file = argv[3];
       } else {
         cout << endl;
       }
@@ -61,10 +65,17 @@ int main(int argc, char *argv[]) {
   // Now we can create an instance of class SourceJ from the driver
   cout << "Loaded plugin: " << source->kind() << endl;
 
-  json params = {
-      {"name", "clock test"}};
-  json out;
+  json params, out;
+  if (argc == 3) {
+    ifstream file(argv[2]);
+    params = json::parse(file);
+  } else {
+    params["name"] = "clock test";
+  }
   source->set_params(&params);
+  for (auto &[k, v]: source->info()) {
+    cout << k << ": " << v << endl;
+  }
   source->get_output(&out);
   cout << "Output: " << out << endl;
   delete source;
