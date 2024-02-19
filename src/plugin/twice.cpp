@@ -44,6 +44,11 @@ public:
     _params = *(TwiceParams *)params;
   }
 
+  map<string, string> info() override {
+
+    return {{string("times"), to_string(_params.times)}};
+  };
+
 private:
   Vec _data;
   TwiceParams _params;

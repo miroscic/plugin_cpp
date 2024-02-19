@@ -15,6 +15,7 @@ set(USR_DIR ${CMAKE_CURRENT_LIST_DIR}/usr)
 set(SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
 set(CMAKE_INSTALL_PREFIX ${USR_DIR})
 set(FETCHCONTENT_QUIET OFF)
+option(SKIP_EXTERNAL "Skip external dependencies" OFF)
 
 
 # DEPENDENCIES #################################################################
@@ -39,21 +40,6 @@ FetchContent_Declare(json
   GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(pugg json)
-
-if (APPLE)
-  set(CMAKE_INSTALL_RPATH "@executable_path/../lib")
-else()
-  set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib;/usr/local/lib")
-endif()
-
-if(WIN32)
-  set(ARMA_LIBS 
-      armadillo 
-      ${EXTERNAL_DIR}/armadillo/examples/lib_win64/libopenblas.lib
-    )
-else()
-  set(ARMA_LIBS armadillo)
-endif()
 
 
 # MACROS #######################################################################
@@ -90,10 +76,34 @@ endmacro()
 
 
 # BUILD SETTINGS ###############################################################
+if (APPLE)
+  set(CMAKE_INSTALL_RPATH "@executable_path/../lib")
+else()
+  set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib;/usr/local/lib")
+endif()
+
 include_directories(
   ${json_SOURCE_DIR}/include
-  /opt/homebrew/include
+  ${USR_DIR}/include
 )
+link_directories(
+  ${USR_DIR}/lib
+)
+if(MSVC)
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+  add_compile_options(/wd4068 /wd4005 /wd4267 /wd4244 /wd4804 /EHsc)
+else()
+  add_compile_options(-Wno-deprecated-declarations)
+endif()
+
+if(WIN32)
+  set(ARMA_LIBS 
+    armadillo 
+    ${EXTERNAL_DIR}/armadillo/examples/lib_win64/libopenblas.lib
+  )
+else()
+  set(ARMA_LIBS armadillo)
+endif()
 
 add_plugin(echo)
 add_plugin(echoj)
@@ -112,14 +122,12 @@ if(OpenCV_FOUND)
   add_plugin(webcam LIBS ${OpenCV_LIBS})
 endif()
 
-find_package(Armadillo REQUIRED)
-if (Armadillo_FOUND)
-  message(STATUS "Armadillo found at ${ARMADILLO_INCLUDE_DIRS}, force_platform plugin will be built")
-  add_definitions(-DARMA_DONT_USE_WRAPPER)
-  include_directories(${ARMADILLO_INCLUDE_DIRS})
-  add_plugin(force_platform ${Armadillo_LIBRARIES})
-  target_compile_options(force_platform PUBLIC -Wno-deprecated-declarations)
+if (NOT SKIP_EXTERNAL)
+  include(external.cmake)
+  add_dependencies(force_platform mlpack)
 endif()
+
+
 
 # INSTALL ######################################################################
 install(TARGETS ${TARGET_LIST}

@@ -13,6 +13,7 @@ Base class for source plugins
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
 #include "common.hpp"
 
 #ifdef _WIN32
@@ -72,6 +73,16 @@ public:
   virtual void set_params(void *params){};
 
   /*
+   * Returns the filter information
+   *
+   * This method returns the filter information. It returns a map with keys and
+   * values describing the filter.
+   *
+   * @return The filter information
+   */
+  virtual std::map<std::string, std::string> info() = 0;
+
+  /*
    * Returns the error message
    *
    * This method returns the error message.
@@ -91,7 +102,7 @@ public:
   bool dummy;
 
 
-  static const int version = 1;
+  static const int version = 2;
   static const std::string server_name() { return "SourceServer"; }
 
 protected:

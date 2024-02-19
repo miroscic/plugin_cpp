@@ -65,21 +65,13 @@ public:
                          std::vector<unsigned char> *blob = nullptr) override {
     return_type result = return_type::success;
     Mat hist, overlay, flipped;
-    int hist_size = 20;
-    string filename = "image.jpg";
-    if (_params.contains("hist_size")) {
-      hist_size = _params["hist_size"];
-    }
-    if (_params.contains("image_name")) {
-      filename = _params["image_name"];
-    }
     while (true) {
       _cap >> _frame;
       if (_frame.empty()) {
         _error = "Error: Unable to capture frame";
         return return_type::error;
       }
-      resize(_frame, _frame, Size(), 0.3, 0.3);
+      resize(_frame, _frame, Size(), _scale, _scale);
       hist.release();
       overlay = Mat::zeros(_frame.size(), _frame.type());
       cvtColor(_frame, _gray, COLOR_BGR2GRAY);
@@ -89,18 +81,18 @@ public:
                Mat(),      // mask
                hist,       // histogram
                1,          // dimensionality
-               &hist_size, // number of bins
+               &_hist_size, // number of bins
                0);
       normalize(hist, hist, 0, 255, NORM_MINMAX, CV_32F);
 
       double ratio = 5.0;
       int inset = 5;
       int hist_w = _frame.cols / ratio, hist_h = _frame.rows / ratio;
-      double bin_w = (double)hist_w / hist_size;
+      double bin_w = (double)hist_w / _hist_size;
       int off_x = _frame.cols - hist_w - inset;
       int off_y = -inset;
       // draw histogram
-      for (int i = 1; i < hist_size; i++) {
+      for (int i = 1; i < _hist_size; i++) {
         line(overlay,
              Point(bin_w * (i - 1) + off_x,
                    _frame.rows - cvRound(hist.at<float>(i - 1) / 255 * hist_h) +
@@ -121,7 +113,7 @@ public:
       putText(overlay, get_ISO8601(), Point{5, _frame.rows - 5}, 0, 0.5, 
         Scalar(200, 200, 200), 1, 8, false);
 
-      if (_params.contains("flip") && _params["flip"].get<bool>()) {
+      if (_flip) {
         flip(_frame, flipped, 1);
         imshow("frame", flipped + overlay);
       } else {
@@ -131,7 +123,7 @@ public:
       char k = waitKey(1000.0 / 25);
       if (' ' == k) {
         Mat out_image = _frame + overlay;
-        imwrite(_params["image_name"], out_image);
+        imwrite(_image_name, out_image);
         if (blob) {
           imencode("." + _blob_format, out_image, *blob);
         }
@@ -152,7 +144,7 @@ public:
         hist_data.assign((float *)hist.datastart, (float *)hist.dataend);
         (*out)["histogram"] = hist_data;
       } else {
-        for (int i = 0; i < hist_size; i++) {
+        for (int i = 0; i < _hist_size; i++) {
           (*out)["histogram"].push_back(cvRound(hist.at<float>(i)));
         }
       }
@@ -162,20 +154,47 @@ public:
 
   void set_params(void *params) override {
     _params = *(json *)params;
-    int device = 0;
     if (_params.contains("device")) {
-      device = _params["device"].template get<int>();
+      _device = _params["device"].template get<int>();
     }
-    _cap.open(device);
+    _cap.open(_device);
     if (!_cap.isOpened()) {
       throw runtime_error("Error: Unable to open webcam");
     }
+    if (_params.contains("hist_size") && _params["hist_size"].is_number()) {
+      _hist_size = _params["hist_size"];
+    }
+    if (_params.contains("image_name") && _params["image_name"].is_string()) {
+      _image_name = _params["image_name"];
+    }
+    if (_params.contains("scale") && _params["scale"].is_number()) {
+      _scale = _params["scale"];
+    }
+    if (_params.contains("flip") && _params["flip"].is_boolean()) {
+      _flip = _params["flip"];
+    }
+  }
+
+  map<string, string> info() override {
+    map<string, string> m{};
+    m["device"] = to_string(_device);
+    m["image_name"] = _params["image_name"];
+    m["hist_size"] = to_string(_hist_size);
+    m["image_name"] = _image_name;
+    m["scale"] = to_string(_scale);
+    m["flip"] = _flip ? "yes" : "no";
+    return m;
   }
 
 private:
   json _data, _params;
+  int _device = 0;
+  int _hist_size = 20;
+  float _scale = 0.3;
+  string _image_name = "image.jpg";
   Mat _frame, _gray;
   VideoCapture _cap;
+  bool _flip = false;
 };
 
 /*
@@ -218,6 +237,11 @@ int main(int argc, char const *argv[]) {
     {"scale", 1/3.0},
     {"flip", true}
   }));
+
+  cout << "Params: " << endl;
+  for (auto &[k, v] : wc.info()) {
+    cout << k << ": " << v << endl;
+  }
 
   cout << "Press space to capture image, q to quit" << endl;
 
