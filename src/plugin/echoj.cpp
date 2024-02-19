@@ -37,6 +37,12 @@ public:
 
   void set_params(void *params) override { _params = *(json *)params; }
 
+  map<string, string> info() override {
+    map<string, string> m;
+    m["params"] = _params.dump();
+    return m;
+  };
+
 private:
   json _data, _params;
 };

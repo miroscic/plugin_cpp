@@ -25,6 +25,10 @@ public:
     return return_type::success;
   }
 
+  std::map<std::string, std::string> info() override {
+    return {};
+  };
+
 private:
   double _data;
 };
