@@ -28,7 +28,12 @@ FetchContent_Declare(pugg
 # plugins deal with I/O as JSON objects
 set(BUILD_TESTING OFF CACHE INTERNAL "")
 set(JSON_BuildTests OFF CACHE INTERNAL "")
+set(BUILD_TESTING OFF CACHE INTERNAL "")
+set(JSON_BuildTests OFF CACHE INTERNAL "")
 FetchContent_Declare(json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG        v3.11.3
+  GIT_SHALLOW    TRUE
   GIT_REPOSITORY https://github.com/nlohmann/json.git
   GIT_TAG        v3.11.3
   GIT_SHALLOW    TRUE
@@ -41,6 +46,14 @@ else()
   set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib;/usr/local/lib")
 endif()
 
+if(WIN32)
+  set(ARMA_LIBS 
+      armadillo 
+      ${EXTERNAL_DIR}/armadillo/examples/lib_win64/libopenblas.lib
+    )
+else()
+  set(ARMA_LIBS armadillo)
+endif()
 
 
 # MACROS #######################################################################
@@ -86,6 +99,8 @@ add_plugin(echo)
 add_plugin(echoj)
 add_plugin(twice)
 add_plugin(clock)
+add_plugin(force_platform LIBS ${ARMA_LIBS})
+
 
 add_loader(loader)
 add_loader(load_filter)
