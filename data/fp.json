@@ -1,0 +1,12 @@
+{
+  "dummy": false,
+  "image": "data/fp_demo.png",
+  "platform_size": {"x": 1230, "y": 565},
+  "epsilon": 30.0,
+  "min_pts": 10,
+  "clean_threshold": 60.0,
+  "conf_factor": 1.0,
+  "dummy_pts": {"x": 10, "y": 10},
+  "coord_transform": {"rot": 0.0, "dx": 0.0, "dy": 0.0},
+  "do_transform": false
+}
