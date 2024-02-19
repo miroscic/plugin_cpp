@@ -13,6 +13,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(USR_DIR ${CMAKE_CURRENT_LIST_DIR}/usr)
 set(SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/src)
+set(CMAKE_INSTALL_PREFIX ${USR_DIR})
+set(FETCHCONTENT_QUIET OFF)
 
 
 # DEPENDENCIES #################################################################
@@ -24,12 +26,20 @@ FetchContent_Declare(pugg
   GIT_SHALLOW    TRUE
 )
 # plugins deal with I/O as JSON objects
+set(BUILD_TESTING OFF CACHE INTERNAL "")
+set(JSON_BuildTests OFF CACHE INTERNAL "")
 FetchContent_Declare(json
-    GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG        v3.11.3
-    GIT_SHALLOW    TRUE
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG        v3.11.3
+  GIT_SHALLOW    TRUE
 )
 FetchContent_MakeAvailable(pugg json)
+
+if (APPLE)
+  set(CMAKE_INSTALL_RPATH "@executable_path/../lib")
+else()
+  set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib;/usr/local/lib")
+endif()
 
 
 # MACROS #######################################################################
@@ -64,7 +74,10 @@ endmacro()
 
 
 # BUILD SETTINGS ###############################################################
-include_directories(${json_SOURCE_DIR}/include)
+include_directories(
+  ${json_SOURCE_DIR}/include
+  /opt/homebrew/include
+)
 
 add_plugin(echo)
 add_plugin(echoj)
@@ -81,9 +94,16 @@ if(OpenCV_FOUND)
   add_plugin(webcam ${OpenCV_LIBS})
 endif()
 
+find_package(Armadillo REQUIRED)
+if (Armadillo_FOUND)
+  message(STATUS "Armadillo found at ${ARMADILLO_INCLUDE_DIRS}, force_platform plugin will be built")
+  add_definitions(-DARMA_DONT_USE_WRAPPER)
+  include_directories(${ARMADILLO_INCLUDE_DIRS})
+  add_plugin(force_platform ${Armadillo_LIBRARIES})
+  target_compile_options(force_platform PUBLIC -Wno-deprecated-declarations)
+endif()
 
 # INSTALL ######################################################################
-set(CMAKE_INSTALL_PREFIX ${USR_DIR})
 install(TARGETS ${TARGET_LIST}
   BUNDLE DESTINATION bin
   LIBRARY DESTINATION lib
