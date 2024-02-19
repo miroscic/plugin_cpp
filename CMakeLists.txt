@@ -129,6 +129,7 @@ endif()
 
 
 
+
 # INSTALL ######################################################################
 install(TARGETS ${TARGET_LIST}
   BUNDLE DESTINATION bin
@@ -136,6 +137,12 @@ install(TARGETS ${TARGET_LIST}
   RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
 )
+# Install custom built OpenBLAS provided by armadillo
+if(WIN32)
+  install(FILES ${EXTERNAL_DIR}/armadillo/examples/lib_win64/libopenblas.dll 
+    TYPE BIN
+  )
+endif()
 
 
 # TESTING ######################################################################

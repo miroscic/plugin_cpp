@@ -14,12 +14,7 @@ ExternalProject_Add(armadillo
     -DCMAKE_INSTALL_PREFIX:PATH=${USR_DIR}
   DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
-# Install custom built OpenBLAS provided by armadillo
-if(WIN32)
-  file(INSTALL ${EXTERNAL_DIR}/armadillo/examples/lib_win64/libopenblas.dll 
-    DESTINATION ${USR_DIR}/bin
-  )
-endif()
+
 
 ExternalProject_Add(ensmallen
   PREFIX ${EXTERNAL_DIR}
