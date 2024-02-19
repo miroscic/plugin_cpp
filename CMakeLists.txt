@@ -102,6 +102,8 @@ else()
   set(ARMA_LIBS armadillo)
 endif()
 
+
+# TARGETS ######################################################################
 add_plugin(echo)
 add_plugin(echoj)
 add_plugin(twice)
