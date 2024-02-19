@@ -77,6 +77,8 @@ else()
 endif()
 include_directories(${json_SOURCE_DIR}/include)
 
+
+# TARGETS ######################################################################
 add_plugin(echo)
 add_plugin(echoj)
 add_plugin(twice)
