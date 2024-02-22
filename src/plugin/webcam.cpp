@@ -13,6 +13,10 @@ Produces current time and date
 #include <nlohmann/json.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/core/utility.hpp>
+#include <opencv2/video/tracking.hpp>
+#include <opencv2/photo.hpp>
 #include <pugg/Kernel.h>
 #include <sstream>
 #include <thread>
@@ -26,10 +30,42 @@ using namespace cv;
 using namespace std::chrono;
 using json = nlohmann::json;
 
+template <typename T>
+inline T mapVal(T x, T a, T b, T c, T d)
+{
+    x = ::max(::min(x, b), a);
+    return c + (d-c) * (x-a) / (b-a);
+}
+
+
 // Plugin class. This shall be the only part that needs to be modified,
 // implementing the actual functionality
 class Webcam : public Source<json> {
 public:
+  static void colorizeFlow(const Mat &u, const Mat &v, Mat &dst) {
+    double uMin, uMax;
+    cv::minMaxLoc(u, &uMin, &uMax, 0, 0);
+    double vMin, vMax;
+    cv::minMaxLoc(v, &vMin, &vMax, 0, 0);
+    uMin = ::abs(uMin);
+    uMax = ::abs(uMax);
+    vMin = ::abs(vMin);
+    vMax = ::abs(vMax);
+    float dMax =
+        static_cast<float>(::max(::max(uMin, uMax), ::max(vMin, vMax)));
+
+    dst.create(u.size(), CV_8UC3);
+    for (int y = 0; y < u.rows; ++y) {
+      for (int x = 0; x < u.cols; ++x) {
+        dst.at<uchar>(y, 3 * x) = 0;
+        dst.at<uchar>(y, 3 * x + 1) =
+            (uchar)mapVal(-v.at<float>(y, x), -dMax, dMax, 0.f, 255.f);
+        dst.at<uchar>(y, 3 * x + 2) =
+            (uchar)mapVal(u.at<float>(y, x), -dMax, dMax, 0.f, 255.f);
+      }
+    }
+  }
+
   Webcam() {
     _error = "none";
     _blob_format = "jpg";
@@ -74,10 +110,13 @@ public:
       resize(_frame, _frame, Size(), _scale, _scale);
       hist.release();
       overlay = Mat::zeros(_frame.size(), _frame.type());
+      
+      // prepare histogram
+      hist.release();
       cvtColor(_frame, _gray, COLOR_BGR2GRAY);
       calcHist(&_gray,
                1,          // number of images
-               0,   // channels
+               0,          // channels
                Mat(),      // mask
                hist,       // histogram
                1,          // dimensionality
@@ -85,6 +124,7 @@ public:
                0);
       normalize(hist, hist, 0, 255, NORM_MINMAX, CV_32F);
 
+      // draw histogram
       double ratio = 5.0;
       int inset = 5;
       int hist_w = _frame.cols / ratio, hist_h = _frame.rows / ratio;
@@ -102,7 +142,7 @@ public:
                        off_y),
              Scalar(200, 200, 200), 1, LINE_AA, 0);
       }
-      // axes
+      // draw axes
       line(overlay, Point(off_x, _frame.rows - inset),
            Point(off_x, _frame.rows - inset - hist_h), Scalar(180, 180, 180), 1,
            LINE_AA, 0);
@@ -110,9 +150,25 @@ public:
            Point(off_x + hist_w, _frame.rows - inset), Scalar(180, 180, 180), 1,
            LINE_AA, 0);
 
-      putText(overlay, get_ISO8601(), Point{5, _frame.rows - 5}, 0, 0.5, 
-        Scalar(200, 200, 200), 1, 8, false);
+      // timestamp image
+      putText(overlay, get_ISO8601(), Point{5, _frame.rows - 5}, 0, 0.5,
+              Scalar(200, 200, 200), 1, 8, false);
 
+      // Optical flow
+      if (_params.contains("optical_flow") &&
+          _params["optical_flow"].is_boolean() && _params["optical_flow"]) {
+        if (_previous.size() == _frame.size()) {
+          calcOpticalFlowFarneback(_gray, _previous, _flowxy, 0.5, 3, 3, 5, 5,
+                                  1.5, 0);
+          split(_flowxy, _planes);
+          colorizeFlow(_planes[0], _planes[1], _flowxy);
+          imshow("flow", _flowxy);
+        }
+        _gray.copyTo(_previous);
+      }
+
+      // Stylize and display
+      stylization(_frame, _frame);
       if (_flip) {
         flip(_frame, flipped, 1);
         imshow("frame", flipped + overlay);
@@ -120,6 +176,7 @@ public:
         imshow("frame", _frame + overlay);
       }
 
+      // GUI
       char k = waitKey(1000.0 / 25);
       if (' ' == k) {
         Mat out_image = _frame + overlay;
@@ -134,9 +191,11 @@ public:
         break;
       }
     }
+
+    // Prepare output
     if (return_type::success == result) {
       (*out)["frame_size"] = {cvRound(_cap.get(CAP_PROP_FRAME_WIDTH)),
-                               cvRound(_cap.get(CAP_PROP_FRAME_HEIGHT))};
+                              cvRound(_cap.get(CAP_PROP_FRAME_HEIGHT))};
       (*out)["image_size"] = {_frame.cols, _frame.rows};
       (*out)["histogram"] = json::array();
       vector<uint16_t> hist_data;
@@ -149,6 +208,7 @@ public:
         }
       }
     }
+
     return result;
   }
 
@@ -192,7 +252,8 @@ private:
   int _hist_size = 20;
   float _scale = 0.3;
   string _image_name = "image.jpg";
-  Mat _frame, _gray;
+  Mat _frame, _gray, _previous, _flowxy;
+  Mat _planes[2];
   VideoCapture _cap;
   bool _flip = false;
 };
