@@ -6,7 +6,7 @@
 #                 |___/         
 cmake_minimum_required(VERSION 3.20)
 project(plugin VERSION 0.1.0 LANGUAGES CXX)
-
+set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
 
 # PROJECT SETTINGS #############################################################
 set(CMAKE_CXX_STANDARD 17)
