@@ -300,8 +300,12 @@ int main(int argc, char const *argv[]) {
   ForcePlatform fp;
   json output;
   json params;
+  if (argc < 2) {
+    cout << "Usage: " << argv[0] << " <filename> [-s]" << endl;
+    return 1;
+  }
   params["dummy"] = false;
-  params["image"] = "data/fp_demo.png";
+  params["image"] = argv[1];
   params["platform_size"] = {{"x", 1230}, {"y", 565}};
   params["epsilon"] = 30.0;
   params["min_pts"] = 10;
@@ -310,14 +314,19 @@ int main(int argc, char const *argv[]) {
   params["dummy_pts"] = {{"x", 10}, {"y", 10}};
   params["coord_transform"] = {{"rot", 0}, {"dx", -15}, {"dy", 10}};
   params["do_transform"] = false;
+  params["include_clusters"] = true;
   fp.set_params(&params);
 
-  for (auto &[k, v] : fp.info()) {
-    cout << k << ": " << v << endl;
+  params["dummy"] = true;
+  fp.set_params(&params);
+  if (argc == 2 || string(argv[2]) != "-s") {
+    for (auto &[k, v] : fp.info()) {
+      cout << k << ": " << v << endl;
+    }
   }
 
   if (fp.get_output(&output) == return_type::success) {
-    cout << output.dump(2) << endl;
+    cout << output.dump() << endl;
   } else {
     cout << "Error: " << fp.error() << endl;
   }
