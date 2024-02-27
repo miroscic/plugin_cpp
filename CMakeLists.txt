@@ -17,6 +17,14 @@ set(CMAKE_INSTALL_PREFIX ${USR_DIR})
 set(FETCHCONTENT_QUIET OFF)
 
 # DEPENDENCIES #################################################################
+if(WIN32)
+  # On Windows, we rely on env variables to find install paths
+  if(NOT DEFINED ENV{OpenCV_DIR})
+    message(FATAL_ERROR "OpenCV_DIR env var not set, please set it to the OpenCV install directory")
+  endif()
+  set(OpenCV_DIR "$ENV{OpenCV_DIR}\\build" CACHE PATH "OpenCV build directory" FORCE)
+endif()
+
 include(FetchContent)
 # pugg is for the plugin system
 FetchContent_Declare(pugg 
@@ -34,6 +42,13 @@ FetchContent_Declare(json
 )
 FetchContent_MakeAvailable(pugg json)
 
+# Compiler options #############################################################
+if(MSVC)
+  add_compile_options(/wd4267 /wd4244)
+  add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+else()
+  add_compile_options(-Wno-deprecated-anon-enum-enum-conversion)
+endif()
 
 
 # MACROS #######################################################################
