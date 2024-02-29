@@ -148,6 +148,8 @@ class HPEQuick : public Source<json> {
   */
 
 public:
+  // Constructor
+  HPEQuick() : _agent_id(PLUGIN_NAME) {}
 
   void set_params(void *params) override {
     json j = *(json *)params;
@@ -164,6 +166,10 @@ public:
 
     if (j.contains("out_res")) {
       out_res = j["out_res"];
+    }
+
+    if (j.contains("agent_id")) {
+      _agent_id = j["agent_id"];
     }
 
     _start_time = chrono::steady_clock::now();
@@ -207,6 +213,9 @@ public:
 
   // Process a single frame
   return_type get_output(json *out, std::vector<unsigned char> *blob = nullptr) override {
+
+    out->clear();
+    (*out)["agent_id"] = _agent_id;
 
     // Submit data to the pipeline
     if (_pipeline->isReadyToProcess()) {
@@ -258,7 +267,13 @@ public:
   void save_last_frame(string filename) { cv::imwrite(filename, _out_frame); }
 
   map<string, string> info() override {
-    return {};
+    return {
+      {"device", to_string(_device)},
+      {"model_file", _model_file},
+      {"out_res", out_res},
+      {"kind", kind()},
+      {"agent_id", _agent_id}
+    };
   };
 
 
@@ -279,6 +294,7 @@ public:
 private:
   int _device = 0;
   string _model_file;
+  string _agent_id;
   cv::VideoCapture _cap;
   chrono::steady_clock::time_point _start_time;
   cv::Mat _curr_frame, _out_frame;
