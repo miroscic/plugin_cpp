@@ -4,7 +4,8 @@
     "b": 2,
     "c": [1, 2, 3]
   },
-  "params": {
-    "Name": "test"
-  }
+  "name": "test",
+  "device": 0,
+  "model_file": "models/human-pose-estimation-0001.xml",
+  "out_res": "800x600"
 }

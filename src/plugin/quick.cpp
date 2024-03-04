@@ -314,16 +314,7 @@ private:
                 |___/
 This is the plugin driver, it should not need to be modified
 */
-
-class HPEQuickDriver : public SourceDriver<json> {
-public:
-  HPEQuickDriver() : SourceDriver(PLUGIN_NAME, HPEQuick::version) {}
-  Source<json> *create() { return new HPEQuick(); }
-};
-
-extern "C" EXPORTIT void register_pugg_plugin(pugg::Kernel *kernel) {
-  kernel->add_driver(new HPEQuickDriver());
-}
+INSTALL_SOURCE_DRIVER(HPEQuick, json)
 
 
 
