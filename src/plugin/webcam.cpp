@@ -268,15 +268,8 @@ private:
 This is the plugin driver, it should not need to be modified
 */
 
-class WebcamDriver : public SourceDriver<json> {
-public:
-  WebcamDriver() : SourceDriver(PLUGIN_NAME, Webcam::version) {}
-  Source<json> *create() { return new Webcam(); }
-};
+INSTALL_SOURCE_DRIVER(Webcam, json)
 
-extern "C" EXPORTIT void register_pugg_plugin(pugg::Kernel *kernel) {
-  kernel->add_driver(new WebcamDriver());
-}
 
 /*
                   _

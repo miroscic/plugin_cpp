@@ -73,16 +73,7 @@ private:
                 |___/
 This is the plugin driver, it should not need to be modified
 */
-
-class ClockDriver : public SourceDriver<json> {
-public:
-  ClockDriver() : SourceDriver(PLUGIN_NAME, Clock::version) {}
-  Source<json> *create() { return new Clock(); }
-};
-
-extern "C" EXPORTIT void register_pugg_plugin(pugg::Kernel *kernel) {
-  kernel->add_driver(new ClockDriver());
-}
+INSTALL_SOURCE_DRIVER(Clock, json)
 
 /*
                   _
