@@ -58,16 +58,8 @@ private:
                 |___/                                      
 This is the plugin driver, it should not need to be modified 
 */
+INSTALL_FILTER_DRIVER(Echo, json, json)
 
-class EchoDriver : public FilterDriver<json, json> {
-public:
-  EchoDriver() : FilterDriver(PLUGIN_NAME, Echo::version) {}
-  Filter<json, json> *create() { return new Echo(); }
-};
-
-extern "C" EXPORTIT void register_pugg_plugin(pugg::Kernel *kernel) {
-  kernel->add_driver(new EchoDriver());
-}
 
 
 
