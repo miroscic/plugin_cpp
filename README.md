@@ -44,3 +44,23 @@ On Windows and Linux, the plugin is a shared library that can only be loaded by 
 ## Plugin Versioning
 
 The plugin system uses an internal version number `Filter::version` to check compatibility between the main application and the plugins. To invalidate a previously released plugin, simply imcrease the version number in the base class.
+
+## Derived classes
+
+To create a new plugin, fork this repository and implement a derived class of `Filter` or `Source` in a new file. At the end of the new derived class definition, add the macros that set up the plugin driver: if it is a source, add
+
+```cpp
+INSTALL_SOURCE_DRIVER(MySourceClassName, json)
+```
+
+If it is a filter, add
+
+```cpp
+INSTALL_FILTER_DRIVER(MyFilterClassName, json, json)
+```
+
+Finally, create a new target in the `CMakeLists.txt` file that compiles the new plugin. Something like:
+
+```cmake
+add_plugin(webcam LIBS ${OpenCV_LIBS} OtherLibsNeeded)
+```
