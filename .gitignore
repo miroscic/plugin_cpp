@@ -5,3 +5,5 @@ usr/*
 *.jpg
 
 external/*
+
+doc/
