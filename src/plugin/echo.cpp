@@ -33,15 +33,9 @@ private:
   double _data;
 };
 
-class EchoDriver : public FilterDriver<double, double> {
-public:
-  EchoDriver() : FilterDriver(PLUGIN_NAME, Echo::version) {}
-  Filter<double, double> *create() { return new Echo(); }
-};
 
-extern "C" EXPORTIT void register_pugg_plugin(pugg::Kernel *kernel) {
-  kernel->add_driver(new EchoDriver());
-}
+INSTALL_FILTER_DRIVER(Echo, double, double)
+
 
 int main(int argc, char const *argv[]) {
   Echo echo;
