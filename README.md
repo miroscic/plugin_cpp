@@ -3,6 +3,10 @@
 
 This example project explores how to develop a plugin system for a C++ application. It is based on the [pugg plugin system]().
 
+## Documentation
+
+<https://miroscic.github.io/plugin_skeletonizer_3D>
+
 ## Building
 
 To build the project, you need to have CMake installed. Then, you can run the following commands:
