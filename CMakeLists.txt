@@ -138,4 +138,6 @@ if(DOXYGEN_FOUND)
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/doc
     CONFIG_FILE Doxyfile
   )
+  add_custom_command(TARGET Doxygen POST_BUILD
+    COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.Doxygen ${CMAKE_CURRENT_LIST_DIR}/doc/Doxyfile)
 endif()

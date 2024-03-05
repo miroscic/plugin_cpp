@@ -6,4 +6,5 @@ usr/*
 
 external/*
 
-doc/
+doc/html/*
+doc/latex*
