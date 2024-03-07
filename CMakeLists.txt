@@ -119,3 +119,25 @@ else()
   add_test(NAME "load_filter echoj.plugin" COMMAND build/load_filter build/echoj.plugin WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
   add_test(NAME "load_source echoj.plugin" COMMAND build/load_source build/clock.plugin WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 endif()
+
+
+# DOCUMENTATION ################################################################
+include(FindDoxygen)
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+  if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/doc)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/doc)
+  endif() 
+  message(STATUS "Doxygen found, documentation will be built")
+  file(GLOB MARKDOWN_FILES "${CMAKE_CURRENT_LIST_DIR}/*.md")
+  set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/doc)
+  set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CMAKE_CURRENT_LIST_DIR}/README.md)
+  set(DOXYGEN_EXCLUDE_PATTERNS clock.cpp echo*.cpp twice.cpp webcam.cpp */main/*)
+  doxygen_add_docs(Doxygen
+    ${SRC_DIR} ${SRC_DIR}/plugin ${MARKDOWN_FILES}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/doc
+    CONFIG_FILE Doxyfile
+  )
+  add_custom_command(TARGET Doxygen POST_BUILD
+    COMMAND cp ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile.Doxygen ${CMAKE_CURRENT_LIST_DIR}/doc/Doxyfile)
+endif()
