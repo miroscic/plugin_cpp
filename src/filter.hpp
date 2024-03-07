@@ -22,14 +22,19 @@ Base class for filter plugins
 #define EXPORTIT
 #endif
 
-/*
+/*!
  * Base class for filters
  *
  * This class is the base class for all filters. It defines the interface for
  * loading data and processing it.
- * Child classes must implement the kind, load_data and process methods.
- * Optionally, they can implement the set_params method to receive parameters
- * as a void pointer.
+ * Derived classes must implement Filter::kind, Filter::load_data and 
+ * Filter::process methods.
+ * Optionally, they can implement the Filter::set_params method to receive 
+ * parameters as a void pointer.
+ * 
+ * After deriving the class, remember to call the
+ * #INSTALL_FILTER_DRIVER(klass, type_in, type_out) macro
+ * to enable the plugin to be loaded by the kernel.
  *
  * @tparam Tin Input data type
  * @tparam Tout Output data type
@@ -41,7 +46,7 @@ public:
   Filter() : _error("No error"), dummy(false) {}
   virtual ~Filter() {}
 
-  /*
+  /*!
    * Returns the kind of filter
    *
    * This method returns the kind of filter. It is used to identify the filter
@@ -51,7 +56,7 @@ public:
    */
   virtual std::string kind() = 0;
 
-  /*
+  /*!
    * Loads the input data
    *
    * This method loads the input data into the filter. It returns true if the
@@ -62,7 +67,7 @@ public:
    */
   virtual return_type load_data(Tin &data) = 0;
 
-  /*
+  /*!
    * Processes the input data
    *
    * This method processes the input data and returns the result. It returns
@@ -73,7 +78,7 @@ public:
    */
   virtual return_type process(Tout *out) = 0;
 
-  /*
+  /*!
    * Sets the parameters
    *
    * This method sets the parameters for the filter. It receives a void pointer
@@ -84,7 +89,7 @@ public:
    */
   virtual void set_params(void *params){};
 
-  /*
+  /*!
    * Returns the filter information
    *
    * This method returns the filter information. It returns a map with keys and
@@ -94,7 +99,7 @@ public:
    */
   virtual std::map<std::string, std::string> info() = 0;
 
-  /*
+  /*!
    * Returns the error message
    *
    * This method returns the error message.
@@ -103,12 +108,19 @@ public:
    */
   std::string error() { return _error; }
 
-  /*
+  /*!
    * Set it to true to enable dummy mode
   */
-  bool dummy;
+  bool dummy = false;
 
+  /*!
+   * Returns the plugin protocol version.
+   */
   static const int version = 2;
+
+  /*!
+   * Returns the plugin server name.
+   */
   static const std::string server_name() { return "FilterServer"; }
 
 private:
@@ -118,6 +130,7 @@ private:
 #ifndef HAVE_MAIN
 #include <pugg/Driver.h>
 
+/// @cond SKIP
 template <typename Tin = std::vector<double>,
           typename Tout = std::vector<double>>
 class FilterDriver : public pugg::Driver {
@@ -126,6 +139,8 @@ public:
       : pugg::Driver(Filter<Tin, Tout>::server_name(), name, version) {}
   virtual Filter<Tin, Tout> *create() = 0;
 };
+// @endcond
+
 #endif
 
 #endif // FILTER_HPP
