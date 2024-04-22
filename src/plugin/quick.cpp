@@ -237,7 +237,7 @@ public:
 
     // Deal with results
     if (!(result = _pipeline->getResult())) {
-      return return_type::error;
+      return return_type::warning;
     }
     if (!no_show) {
       _out_frame =
@@ -329,6 +329,7 @@ INSTALL_SOURCE_DRIVER(HPEQuick, json)
 */
 
 int main(int argc, char *argv[]) {
+  return_type rt = return_type::success;
   try {
     int cam_id = 0;
     if (argc < 2) {
@@ -348,8 +349,12 @@ int main(int argc, char *argv[]) {
     hpe.set_params(&params);
     json output = {};
 
-    while ((hpe.get_output(&output) == return_type::success)) {
-      cout << "Output: " << output.dump() << endl;
+    while ((rt = hpe.get_output(&output)) != return_type::error) {
+      if (rt == return_type::warning) {
+        cout <<endl << "*** Warning: no result." << endl;
+      } else {
+        cout << "Output: " << output.dump() << endl;
+      }
     }
     cout << endl;
   } catch (const std::exception &error) {
