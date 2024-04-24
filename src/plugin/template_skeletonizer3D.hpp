@@ -12,6 +12,11 @@
 #include <opencv2/opencv.hpp>
 #include <pugg/Kernel.h>
 
+#ifdef KINECT_AZURE
+// include Kinect libraries
+#endif
+
+
 using namespace cv;
 using namespace std;
 using json = nlohmann::json;
@@ -42,84 +47,134 @@ public:
    * @brief Acquire a frame from a camera device. Camera ID is defined in the
    * parameters list.
    *
-   * The acquired frame is stored in the #_rgbd and #_rgb attributes.
+   * The acquired frame is stored in the #_k4a_rgbd, #_rgbd and #_rgb 
+   * attributes.
    *
    * @see set_params
    * @author Nicola
    * @return result status ad defined in return_type
    */
-  return_type acquire_frame() {
+  return_type acquire_frame(bool dummy = false) {
+    // acquire last frame from the camera device
+    // if camera device is a Kinect Azure, use the Azure SDK
+    // and translate the frame in OpenCV format
+    #ifdef KINECT_AZURE
+    // acquire and translate into _rgb and _rgbd
+    #else
+    // acquire and store into _rgb (RGB) and _rgbd (RGBD), if available
+    #endif
     return return_type::success;
   }
   
+
+  /* LEFT BRANCH =============================================================*/
+
   /**
    * @brief Compute the skeleton from the depth map.
    *
    * Compute the skeleton from the depth map. The resulting skeleton is stored
-   * in _skeleton3D attribute as a map of 3D points.
+   * in #_skeleton3D attribute as a map of 3D points.
    *
    * @author Nicola
    * @return result status ad defined in return_type
    */
-  return_type skeleton_from_depth_compute() {
+  return_type skeleton_from_depth_compute(bool debug = false) {
+  #ifdef KINECT_AZURE
+    return return_type::success;
+  #else
+    // NOOP
+    return return_type::success;
+  #endif 
+  }
+
+  /**
+   * @brief Remove unnecessary points from the point cloud
+   *
+   * Make the point cloud lighter by removing unnecessary points, so that it 
+   * can be sent to the database via network
+   * 
+   * @author Nicola
+   * @return result status ad defined in return_type
+   */
+  return_type point_cloud_filter(bool debug = false) {
+    #ifdef KINECT_AZURE
+    return return_type::success;
+    #else
+    // NOOP
+    return return_type::success;
+    #endif
+  }
+
+  /**
+   * @brief Transform the 3D skeleton coordinates in the global reference frame
+   * 
+   * Use the extrinsic camera parameters to transorm the 3D skeleton coordinates
+   * just before sending them as plugin output.
+   * 
+   * @return return_type 
+   */
+  return_type coordinate_transfrom(bool debug = false) {
     return return_type::success;
   }
+
+
+  /* RIGHT BRANCH ============================================================*/
 
   /**
    * @brief Compute the skeleton from RGB images only
    *
-   * Compute the skeleton from RGB images only
+   * Compute the skeleton from RGB images only. On success, the field 
+   * #_skeleton2D is updated (as a map of 2D points).
+   * Also, the field #_heatmaps is updated with the joints heatmaps (one per 
+   * joint).
+   * 
+   * There is a configuration flag for optionally skipping this branch 
+   * on Azure agents.
    * 
    * @author Alessandro
    * @return result status ad defined in return_type
    */
-  return_type skeleton_from_rgb_compute() {
+  return_type skeleton_from_rgb_compute(bool debug = false) {
     return return_type::success;
   }
 
   /**
-   * @brief Compute the joints heatmap
+   * @brief Compute the hessians for joints
    *
-   * Compute the joints heatmap
-   * 
-   * @author Nicola
-   * @return result status ad defined in return_type
-   */
-  return_type point_cloud_filter() {
-    return return_type::success;
-  }
-
-  /**
-   * @brief Compute the point cloud
-   *
-   * Compute the point cloud
+   * Compute the hessians for joints on the RGB frame based on the #_heatmaps 
+   * field.
    * 
    * @author Alessandro
    * @return result status ad defined in return_type
    */
-  return_type hessian_compute() {
+  return_type hessian_compute(bool debug = false) {
     return return_type::success;
   }
 
   /**
-   * @brief Compute the 2D covariance matrix
+   * @brief Compute the 3D covariance matrix
    * 
-   * Compute the 2D covariance matrix
+   * Compute the 3D covariance matrix.
+   * Two possible cases:
+   *   1. one Azure camera: use the 3D to uncertainty in the view axis, use 
+   *      the 2D image to uncertainty in the projection plane
+   *   2. one RGB camera: calculates a 3D ellipsoid based on the 2D covariance
+   *      plus the "reasonable" depth range as a third azis (direction of view)
    *
    * @author Alessandro
    * @return result status ad defined in return_type
    */
-  return_type cov3D_from_cov2D_compute() {
+  return_type cov3D_compute(bool debug = false) {
     return return_type::success;
   }
 
   /**
-   * @brief cov3D_adjust
+   * @brief Consistency check of the 3D skeleton according to human physiology
    *
    * @authors Marco, Matteo
    * @return result status ad defined in return_type
    */
-  return_type cov3D_adjust() {
+  return_type consistency_check(bool debug = false) {
     return return_type::success;
   }
 
@@ -153,7 +208,20 @@ public:
    * @param blob Possible additional binary data
    * @return return_type
    */
-  return_type get_output(json *out, vector<unsigned_char> *blob) override {}
+  return_type get_output(json *out, vector<unsigned_char> *blob) override {
+    // call in sequence the methods to compute the skeleton (acquire_frame, 
+    // skeleton_from_depth_compute, etc.)
+    acquire_frame(json["debug"]["acquire_frame"]);
+    skeleton_from_depth_compute();
+    skeleton_from_rgb_compute();
+    hessian_compute();
+    cov3D_compute();
+    consistency_check();
+    point_cloud_filter();
+    coordinate_transfrom();
+    // store the output in the out parameter json and the point cloud in the 
+    // blob parameter
+  }
 
   /**
    * @brief Provide further info to Miroscic agent
@@ -178,12 +246,15 @@ protected:
   Mat _rgb;                        /**< the last RGB frame */
   map<string, vector> _skeleton2D; /**< the skeleton from 2D cameras only*/
   map<string, vector> _skeleton3D; /**< the skeleton from 3D cameras only*/
-  Mat _heatmap;                    /**< the joints heatmap */
-  Mat _point_cloud;                /**< the body point cloud */
-  Mat _cov2D;                      /**< the 2D covariance matrix */
+  vector<Mat> _heatmaps;           /**< the joints heatmaps */
+  Mat _point_cloud;                /**< the filtered body point cloud */
+  Mat _cov2D;                      /**< the 2D covariance matrix (18x3)*/
   Mat _cov3D;                      /**< the 3D covariance matrix */
   Mat _cov3D_adj;                  /**< the adjusted 3D covariance matrix */
   json _params;                    /**< the parameters of the plugin */
+  #ifdef KINECT_AZURE
+  k4a_capture_t _k4a_rgbd;         /**< the last capture */
+  #endif
 }
 
 INSTALL_SOURCE_DRIVER(Skeletonizer3D, json);
