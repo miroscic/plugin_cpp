@@ -34,6 +34,39 @@ FetchContent_Declare(json
 )
 FetchContent_MakeAvailable(pugg json)
 
+find_package(OpenCV)
+
+
+if(WIN32)
+  # On Windows, we rely on env variables to find install paths
+  if(NOT DEFINED ENV{OpenCV_DIR})
+    message(FATAL_ERROR "OpenCV_DIR env var not set, please set it to the OpenCV install directory")
+  endif()
+  set(OpenCV_DIR "$ENV{OpenCV_DIR}\\build" CACHE PATH "OpenCV build directory" FORCE)
+  if(NOT DEFINED ENV{OpenVINO_DIR})
+    message(FATAL_ERROR "OpenVINO_DIR env var not set, please set it to the OpenVINO install directory")
+  endif()
+  set(OpenVINO_DIR "$ENV{OpenVINO_DIR}\\runtime\\cmake" CACHE PATH "OpenVINO install directory" FORCE)
+endif()
+
+find_package(OpenCV REQUIRED COMPONENTS core highgui videoio imgproc imgcodecs)
+find_package(OpenVINO REQUIRED COMPONENTS Runtime)
+
+if(WIN32)
+  # OpenVINO headers have to be manually found on Windows
+  set(OPENVINO_INCLUDE_DIR "$ENV{OpenVINO_DIR}\\runtime\\include")
+else()
+  find_path(OPENVINO_INCLUDE_DIR NAMES openvino.hpp 
+    PATHS /opt/homebrew/include /usr/local/include
+    PATH_SUFFIXES openvino
+  )
+  cmake_path(GET OPENVINO_INCLUDE_DIR PARENT_PATH OPENVINO_INCLUDE_DIR)
+endif()
+if (NOT OPENVINO_INCLUDE_DIR)
+  message(FATAL_ERROR "OpenVINO not found")
+else()
+  message(STATUS "OpenVINO headers found at ${OPENVINO_INCLUDE_DIR}")
+endif()
 
 
 # MACROS #######################################################################
@@ -75,24 +108,23 @@ if (APPLE)
 else()
   set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib;/usr/local/lib")
 endif()
-include_directories(${json_SOURCE_DIR}/include)
+include_directories(
+  ${OpenCV_INCLUDE_DIRS}
+  ${OPENVINO_INCLUDE_DIR}
+  ${json_SOURCE_DIR}/include
+)
 
 
 # TARGETS ######################################################################
-add_plugin(echo)
-add_plugin(echoj)
-add_plugin(twice)
-add_plugin(clock)
+# add_plugin(echo)
+# add_plugin(echoj)
+# add_plugin(twice)
+# add_plugin(clock)
+add_plugin(skeletonizer3D LIBS ${OpenCV_LIBS})
 
-add_loader(loader)
-add_loader(load_filter)
+# add_loader(loader)
+# add_loader(load_filter)
 add_loader(load_source)
-
-find_package(OpenCV)
-if(OpenCV_FOUND)
-  message(STATUS "OpenCV found, webcam.plugin will be built")
-  add_plugin(webcam LIBS ${OpenCV_LIBS})
-endif()
 
 
 # INSTALL ######################################################################
@@ -104,21 +136,6 @@ install(TARGETS ${TARGET_LIST}
   ARCHIVE DESTINATION lib
 )
 
-
-# TESTING ######################################################################
-include(CTest)
-add_test(NAME "echoj plugin exec" COMMAND ${echoj_EXEC})
-add_test(NAME "clock plugin exec" COMMAND ${clock_EXEC})
-if (APPLE)
-  add_test(NAME "load_filter echoj.plugin" COMMAND load_filter echoj.plugin)
-  add_test(NAME "load_source clock.plugin" COMMAND load_source clock.plugin)
-elseif(WIN32)
-  add_test(NAME "load_filter echoj.plugin" COMMAND load_filter.exe echoj.plugin)
-  add_test(NAME "load_source echoj.plugin" COMMAND load_source.exe clock.plugin)
-else()
-  add_test(NAME "load_filter echoj.plugin" COMMAND build/load_filter build/echoj.plugin WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
-  add_test(NAME "load_source echoj.plugin" COMMAND build/load_source build/clock.plugin WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
-endif()
 
 
 # DOCUMENTATION ################################################################
