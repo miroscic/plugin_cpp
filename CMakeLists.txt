@@ -34,8 +34,6 @@ FetchContent_Declare(json
 )
 FetchContent_MakeAvailable(pugg json)
 
-find_package(OpenCV)
-
 
 if(WIN32)
   # On Windows, we rely on env variables to find install paths
