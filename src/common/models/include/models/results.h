@@ -119,4 +119,6 @@ struct HumanPoseResult : public ResultBase {
     HumanPoseResult(int64_t frameId = -1, const std::shared_ptr<MetaData>& metaData = nullptr)
         : ResultBase(frameId, metaData) {}
     std::vector<HumanPose> poses;
+    std::vector<cv::Mat> heatMaps;
+    std::vector<cv::Mat> pafs;
 };

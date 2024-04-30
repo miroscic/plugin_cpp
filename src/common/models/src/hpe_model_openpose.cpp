@@ -169,21 +169,29 @@ std::unique_ptr<ResultBase> HPEOpenPose::postprocess(InferenceResult& infResult)
     float* const predictions = outputMapped.data<float>();
     float* const heats = heatMapsMapped.data<float>();
 
-    std::vector<cv::Mat> heatMaps(keypointsNumber);
-    for (size_t i = 0; i < heatMaps.size(); i++) {
-        heatMaps[i] =
+    if (result->heatMaps.empty()) {
+        result->heatMaps = std::vector<cv::Mat>(keypointsNumber);
+    } else {
+        result->heatMaps.clear();
+    }
+    for (size_t i = 0; i < result->heatMaps.size(); i++) {
+        result->heatMaps[i] =
             cv::Mat(heatMapShape[2], heatMapShape[3], CV_32FC1, heats + i * heatMapShape[2] * heatMapShape[3]);
     }
-    resizeFeatureMaps(heatMaps);
+    resizeFeatureMaps(result->heatMaps);
 
-    std::vector<cv::Mat> pafs(outputShape[1]);
-    for (size_t i = 0; i < pafs.size(); i++) {
-        pafs[i] =
+    if (result->pafs.empty()) {
+        result->pafs = std::vector<cv::Mat>(outputShape[1]);
+    } else {
+        result->pafs.clear();
+    }
+    for (size_t i = 0; i < result->pafs.size(); i++) {
+        result->pafs[i] =
             cv::Mat(heatMapShape[2], heatMapShape[3], CV_32FC1, predictions + i * heatMapShape[2] * heatMapShape[3]);
     }
-    resizeFeatureMaps(pafs);
+    resizeFeatureMaps(result->pafs);
 
-    std::vector<HumanPose> poses = extractPoses(heatMaps, pafs);
+    std::vector<HumanPose> poses = extractPoses(result->heatMaps, result->pafs);
 
     const auto& scale = infResult.internalModelData->asRef<InternalScaleData>();
     float scaleX = stride / upsampleRatio * scale.scaleX;
