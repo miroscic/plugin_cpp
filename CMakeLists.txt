@@ -161,7 +161,8 @@ add_library(common STATIC ${COMMON_SOURCES} ${COMMON_HEADERS})
 # add_loader(load_filter)
 
 add_loader(load_source)
-add_plugin(quick LIBS common ${OpenCV_LIBS} openvino::runtime)
+#add_plugin(quick LIBS common ${OpenCV_LIBS} openvino::runtime)
+add_plugin(skeletonizer3D LIBS common ${OpenCV_LIBS} openvino::runtime)
 
 # Download OpenPOSE models #####################################################
 set(MODEL_NAME "human-pose-estimation-0001" CACHE STRING "Model name (no extension)")

@@ -242,8 +242,8 @@ public:
     if (!no_show) {
       _out_frame =
           renderHumanPose(result->asRef<HumanPoseResult>(), _output_transform);
-      cv::imshow("Human Pose Estimation Results", _out_frame);
-      // cv::imshow("Human Pose Estimation Results", result->asRef<HumanPoseResult>().heatMaps[0]);
+      //cv::imshow("Human Pose Estimation Results", _out_frame);
+      cv::imshow("Human Pose Estimation Results", result->asRef<HumanPoseResult>().heatMaps[0]);
       int key = cv::waitKey(1000.0 / fps);
       if (27 == key || 'q' == key || 'Q' == key) { // Esc
         return return_type::error;
