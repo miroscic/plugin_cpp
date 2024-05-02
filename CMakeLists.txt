@@ -63,15 +63,14 @@ FetchContent_Declare(json
   GIT_TAG        v3.11.3
   GIT_SHALLOW    TRUE
 )
-FetchContent_MakeAvailable(pugg json)
+FetchContent_Declare(eigen
+  GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+  GIT_TAG 3.4.0
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(pugg json eigen)
 
-# Compiler options #############################################################
-if(MSVC)
-  add_compile_options(/wd4267)
-  add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
-else()
-  add_compile_options(-Wno-deprecated-anon-enum-enum-conversion)
-endif()
+
 
 # MACROS #######################################################################
 # Call: add_plugin(name [SRCS src1 src2 ...] [LIBS lib1 lib2 ...])
@@ -112,7 +111,6 @@ if (APPLE)
 else()
   set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib;/usr/local/lib")
 endif()
-include_directories(${json_SOURCE_DIR}/include)
 
 # OMZ common source files ######################################################
 set(COMMON ${SRC_DIR}/common)
@@ -141,12 +139,12 @@ list(APPEND COMMON_SOURCES ${SRC_DIR}/args_helper.cpp)
 # Add the include directories ##################################################
 include_directories(
   ${OpenCV_INCLUDE_DIRS}
+  ${OPENVINO_INCLUDE_DIR}
+  ${json_SOURCE_DIR}/include
   ${COMMON}/models/include
   ${COMMON}/monitors/include
   ${COMMON}/pipelines/include
   ${COMMON}/utils/include
-  ${OPENVINO_INCLUDE_DIR}
-  ${json_SOURCE_DIR}/include
 )
 
 # TARGETS ######################################################################
@@ -160,9 +158,16 @@ add_library(common STATIC ${COMMON_SOURCES} ${COMMON_HEADERS})
 # add_loader(loader)
 # add_loader(load_filter)
 
+# add_plugin(echo)
+# add_plugin(echoj)
+# add_plugin(twice)
+# add_plugin(clock)
+
+# add_loader(loader)
+# add_loader(load_filter)
 add_loader(load_source)
 #add_plugin(quick LIBS common ${OpenCV_LIBS} openvino::runtime)
-add_plugin(skeletonizer3D LIBS common ${OpenCV_LIBS} openvino::runtime)
+add_plugin(skeletonizer3D LIBS common ${OpenCV_LIBS} openvino::runtime Eigen3::Eigen)
 
 # Download OpenPOSE models #####################################################
 set(MODEL_NAME "human-pose-estimation-0001" CACHE STRING "Model name (no extension)")
@@ -183,3 +188,22 @@ install(TARGETS ${TARGET_LIST}
 )
 
 
+
+# DOCUMENTATION ################################################################
+include(FindDoxygen)
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+  if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/doc)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/doc)
+  endif() 
+  message(STATUS "Doxygen found, documentation will be built")
+  file(GLOB MARKDOWN_FILES "${CMAKE_CURRENT_LIST_DIR}/*.md")
+  set(DOXYGEN_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/doc)
+  set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CMAKE_CURRENT_LIST_DIR}/README.md)
+  set(DOXYGEN_EXCLUDE_PATTERNS clock.cpp echo*.cpp twice.cpp webcam.cpp */main/*)
+  doxygen_add_docs(Doxygen
+    ${SRC_DIR} ${SRC_DIR}/plugin ${MARKDOWN_FILES}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/doc
+    CONFIG_FILE Doxyfile
+  )
+endif()
