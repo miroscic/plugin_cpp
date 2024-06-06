@@ -14,7 +14,7 @@
 * @brief Call this macro after defining a source class to install it into the
 * kernel.
 * @param klass the class name
-* @param type the type of the source
+* @param type the output type of the source
 */
 #define INSTALL_SOURCE_DRIVER(klass, type)                                     \
   class klass##Driver : public SourceDriver<type> {                            \
@@ -45,6 +45,24 @@
     kernel->add_driver(new klass##Driver());                                   \
   }
 
+/*!
+* @def INSTALL_SINK_DRIVER(klass, type)
+* Install a sink driver into the kernel.
+* 
+* @brief Call this macro after defining a source class to install it into the
+* kernel.
+* @param klass the class name
+* @param type the input type for the sink
+*/
+#define INSTALL_SINK_DRIVER(klass, type)                                     \
+  class klass##Driver : public SinkDriver<type> {                            \
+  public:                                                                      \
+    klass##Driver() : SinkDriver(PLUGIN_NAME, klass::version) {}             \
+    Sink<type> *create() { return new klass(); }                             \
+  };                                                                           \
+  extern "C" EXPORTIT void register_pugg_plugin(pugg::Kernel *kernel) {        \
+    kernel->add_driver(new klass##Driver());                                   \
+  }
 
 /*!
 * @brief The return type of common interface functions.
