@@ -79,13 +79,10 @@ include_directories(${json_SOURCE_DIR}/include)
 
 
 # TARGETS ######################################################################
-add_plugin(echo)
 add_plugin(echoj)
-add_plugin(twice)
 add_plugin(clock)
 add_plugin(to_console)
 
-add_loader(loader)
 add_loader(load_filter)
 add_loader(load_source)
 add_loader(load_sink)
