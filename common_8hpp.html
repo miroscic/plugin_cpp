@@ -98,6 +98,9 @@ Macros</h2></td></tr>
 <tr class="memitem:ac2ca73400d23bb4f12e23a64071588db"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#ac2ca73400d23bb4f12e23a64071588db">INSTALL_FILTER_DRIVER</a>(klass,  type_in,  type_out)</td></tr>
 <tr class="memdesc:ac2ca73400d23bb4f12e23a64071588db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call this macro after defining a filter class to install it into the kernel.  <a href="common_8hpp.html#ac2ca73400d23bb4f12e23a64071588db">More...</a><br /></td></tr>
 <tr class="separator:ac2ca73400d23bb4f12e23a64071588db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1bbc82f63035c765ea291fb1051afad4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="common_8hpp.html#a1bbc82f63035c765ea291fb1051afad4">INSTALL_SINK_DRIVER</a>(klass,  type)</td></tr>
+<tr class="memdesc:a1bbc82f63035c765ea291fb1051afad4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Call this macro after defining a source class to install it into the kernel.  <a href="common_8hpp.html#a1bbc82f63035c765ea291fb1051afad4">More...</a><br /></td></tr>
+<tr class="separator:a1bbc82f63035c765ea291fb1051afad4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -164,6 +167,52 @@ Enumerations</h2></td></tr>
 
 </div>
 </div>
+<a id="a1bbc82f63035c765ea291fb1051afad4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1bbc82f63035c765ea291fb1051afad4">&#9670;&nbsp;</a></span>INSTALL_SINK_DRIVER</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define INSTALL_SINK_DRIVER</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">klass, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">type&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">  <span class="keyword">class </span>klass##Driver : <span class="keyword">public</span> SinkDriver&lt;type&gt; {                            \</div>
+<div class="line">  public:                                                                      \</div>
+<div class="line">    klass##Driver() : SinkDriver(PLUGIN_NAME, klass::version) {}             \</div>
+<div class="line">    Sink&lt;type&gt; *create() { <span class="keywordflow">return</span> <span class="keyword">new</span> klass(); }                             \</div>
+<div class="line">  };                                                                           \</div>
+<div class="line">  extern <span class="stringliteral">&quot;C&quot;</span> EXPORTIT <span class="keywordtype">void</span> register_pugg_plugin(pugg::Kernel *kernel) {        \</div>
+<div class="line">    kernel-&gt;add_driver(<span class="keyword">new</span> klass##Driver());                                   \</div>
+<div class="line">  }</div>
+</div><!-- fragment -->
+<p>Call this macro after defining a source class to install it into the kernel. </p>
+<p>Install a sink driver into the kernel.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">klass</td><td>the class name </td></tr>
+    <tr><td class="paramname">type</td><td>the input type for the sink </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="ab7463bc9c9b40ff018d92b01c237c452"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab7463bc9c9b40ff018d92b01c237c452">&#9670;&nbsp;</a></span>INSTALL_SOURCE_DRIVER</h2>
 
@@ -203,7 +252,7 @@ Enumerations</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">klass</td><td>the class name </td></tr>
-    <tr><td class="paramname">type</td><td>the type of the source </td></tr>
+    <tr><td class="paramname">type</td><td>the output type of the source </td></tr>
   </table>
   </dd>
 </dl>
