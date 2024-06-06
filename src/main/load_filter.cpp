@@ -57,13 +57,13 @@ int main(int argc, char *argv[]) {
 
   // No driver can be loaded
   if (!driver) {
-    cout << "No driver to load, exiting" << endl;
+    cout << "\nNo driver to load, exiting" << endl;
     exit(1);
   }
 
   FilterJ *filter = driver->create();
   // Now we can create an instance of class FilterJ from the driver
-  cout << "Loaded plugin: " << filter->kind() << endl;
+  cout << "\nLoaded plugin: " << filter->kind() << endl;
 
   json in = {{"array", {1, 2, 3, 4}}};
   json params, out;

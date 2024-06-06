@@ -57,13 +57,13 @@ int main(int argc, char *argv[]) {
 
   // No driver can be loaded
   if (!driver) {
-    cout << "No driver to load, exiting" << endl;
+    cout << "\nNo driver to load, exiting" << endl;
     exit(1);
   }
 
   SourceJ *source = driver->create();
   // Now we can create an instance of class SourceJ from the driver
-  cout << "Loaded plugin: " << source->kind() << endl;
+  cout << "\nLoaded plugin: " << source->kind() << endl;
 
   json params, out;
   if (argc == 3) {

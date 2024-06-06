@@ -57,13 +57,13 @@ int main(int argc, char *argv[]) {
 
   // No driver can be loaded
   if (!driver) {
-    cout << "No driver to load, exiting" << endl;
+    cout << "\nNo driver to load, exiting" << endl;
     exit(1);
   }
 
   SinkJ *sink = driver->create();
   // Now we can create an instance of class SinkJ from the driver
-  cout << "Loaded plugin: " << sink->kind() << endl;
+  cout << "\nLoaded plugin: " << sink->kind() << endl;
 
   json in = {{"array", {1, 2, 3, 4}}};
   json params;
